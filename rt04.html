@@ -1,0 +1,1218 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Smart RT 004 / 025 Teluk Pucung</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        primary: 'rgb(var(--color-primary) / <alpha-value>)',
+                        primaryDark: 'rgb(var(--color-primary-dark) / <alpha-value>)',
+                        secondary: 'rgb(var(--color-secondary) / <alpha-value>)',
+                        darkBg: '#0f172a',
+                        darkCard: '#1e293b',
+                    },
+                    animation: {
+                        'blob': 'blob 7s infinite',
+                        'pulse-slow': 'pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+                        'float': 'float 3s ease-in-out infinite',
+                    },
+                    keyframes: {
+                        blob: {
+                            '0%': { transform: 'translate(0px, 0px) scale(1)' },
+                            '33%': { transform: 'translate(30px, -50px) scale(1.1)' },
+                            '66%': { transform: 'translate(-20px, 20px) scale(0.9)' },
+                            '100%': { transform: 'translate(0px, 0px) scale(1)' },
+                        },
+                        float: {
+                            '0%, 100%': { transform: 'translateY(0)' },
+                            '50%': { transform: 'translateY(-5px)' },
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <!-- FontAwesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    
+    <style>
+        /* CSS Variables untuk Tema Warna */
+        :root {
+            --color-primary: 37 99 235; /* blue-600 */
+            --color-primary-dark: 29 78 216; /* blue-700 */
+            --color-secondary: 16 185 129; /* emerald-500 */
+        }
+        [data-theme="emerald"] {
+            --color-primary: 16 185 129;
+            --color-primary-dark: 4 120 87;
+            --color-secondary: 245 158 11;
+        }
+        [data-theme="rose"] {
+            --color-primary: 225 29 72;
+            --color-primary-dark: 190 18 60;
+            --color-secondary: 244 63 94;
+        }
+        [data-theme="violet"] {
+            --color-primary: 124 58 237;
+            --color-primary-dark: 109 40 217;
+            --color-secondary: 236 72 153;
+        }
+
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            background-color: #e2e8f0;
+            margin: 0; padding: 0;
+            display: flex; justify-content: center; align-items: center;
+            height: 100vh; height: 100dvh;
+            overflow: hidden;
+        }
+
+        .dark body { background-color: #020617; }
+
+        #app-container {
+            width: 100%; max-width: 420px; height: 100%;
+            background-color: rgba(248, 250, 252, 0.85);
+            backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
+            display: flex; flex-direction: column; position: relative;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.3);
+            overflow: hidden;
+            transition: background-color 0.4s ease;
+        }
+        .dark #app-container { 
+            background-color: rgba(15, 23, 42, 0.85); 
+            border-left: 1px solid rgba(255,255,255,0.05); border-right: 1px solid rgba(255,255,255,0.05); 
+        }
+
+        #content-area {
+            flex: 1; overflow-y: auto; overflow-x: hidden;
+            padding-bottom: 24px; scroll-behavior: smooth;
+            -webkit-overflow-scrolling: touch;
+        }
+        #content-area.has-bottom-nav { padding-bottom: 95px; }
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+
+        .page-view { display: none; }
+        .page-view.active { display: block; animation: zoomFadeIn 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
+        @keyframes zoomFadeIn {
+            from { opacity: 0; transform: translateY(20px) scale(0.97); }
+            to { opacity: 1; transform: translateY(0) scale(1); }
+        }
+
+        .glass-card {
+            background: rgba(255, 255, 255, 0.9);
+            border-radius: 20px; padding: 18px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.04);
+            border: 1px solid rgba(255, 255, 255, 0.4);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .dark .glass-card { 
+            background: rgba(30, 41, 59, 0.7); border: 1px solid rgba(255,255,255,0.05); box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2); 
+        }
+
+        #bottom-nav {
+            position: absolute; bottom: 15px; left: 15px; right: 15px;
+            background: rgba(255, 255, 255, 0.9); backdrop-filter: blur(15px);
+            border-radius: 24px; box-shadow: 0 10px 40px rgba(0,0,0,0.1); 
+            padding: 8px 10px; z-index: 30;
+            border: 1px solid rgba(255,255,255,0.5);
+            transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1), opacity 0.3s;
+        }
+        .dark #bottom-nav { background: rgba(30, 41, 59, 0.9); border: 1px solid rgba(255,255,255,0.1); box-shadow: 0 10px 40px rgba(0,0,0,0.4); }
+        #bottom-nav.hidden-nav { transform: translateY(150%); opacity: 0; pointer-events: none; }
+
+        .nav-item {
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            color: #94a3b8; font-size: 0.65rem; transition: all 0.3s ease; cursor: pointer;
+            font-weight: 700; width: 25%; padding: 8px 0; position: relative;
+        }
+        .nav-item.active { color: rgb(var(--color-primary)); }
+        .dark .nav-item.active { color: #fff; }
+        .nav-item i { font-size: 1.3rem; margin-bottom: 4px; transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1); }
+        .nav-item.active i { transform: translateY(-4px) scale(1.15); color: rgb(var(--color-primary)); }
+        .dark .nav-item.active i { color: rgb(var(--color-secondary)); text-shadow: 0 0 15px rgba(var(--color-secondary), 0.6); }
+
+        /* Chat WA Style */
+        .chat-bubble { max-width: 85%; padding: 10px 14px; border-radius: 12px; font-size: 0.9rem; line-height: 1.5; margin-bottom: 8px; position: relative; box-shadow: 0 1px 2px rgba(0,0,0,0.1); }
+        .chat-ai { background: white; border-top-left-radius: 0; align-self: flex-start; color: #111b21; }
+        .dark .chat-ai { background: #202c33; color: #e9edef; border-color: transparent; }
+        .chat-user { background: #d9fdd3; border-top-right-radius: 0; align-self: flex-end; color: #111b21; }
+        .dark .chat-user { background: #005c4b; color: #e9edef; }
+        .wa-bg { background-color: #efeae2; background-image: url("data:image/svg+xml,%3Csvg width='40' height='40' viewBox='0 0 40 40' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M20 20.5V18H0v-2h20v-2H0v-2h20v-2H0V8h20V6H0V4h20V2H0V0h22v20h2V0h2v20h2V0h2v20h2V0h2v20h2V0h2v20h2v2H20v-1.5z' fill='%23000000' fill-opacity='0.03' fill-rule='evenodd'/%3E%3C/svg%3E"); }
+        .dark .wa-bg { background-color: #0b141a; background-image: url("data:image/svg+xml,%3Csvg width='40' height='40' viewBox='0 0 40 40' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M20 20.5V18H0v-2h20v-2H0v-2h20v-2H0V8h20V6H0V4h20V2H0V0h22v20h2V0h2v20h2V0h2v20h2V0h2v20h2V0h2v20h2v2H20v-1.5z' fill='%23ffffff' fill-opacity='0.02' fill-rule='evenodd'/%3E%3C/svg%3E"); }
+        
+        @keyframes chatPop {
+            0% { opacity: 0; transform: translateY(20px) scale(0.9); }
+            100% { opacity: 1; transform: translateY(0) scale(1); }
+        }
+        .chat-animate { animation: chatPop 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards; }
+
+        .typing-dots { display: flex; gap: 4px; padding: 4px 6px; align-items: center; justify-content: center; height: 24px; }
+        .typing-dot { width: 6px; height: 6px; border-radius: 50%; background-color: rgb(var(--color-primary)); animation: typingBounce 1.4s infinite ease-in-out both; }
+        .dark .typing-dot { background-color: rgb(var(--color-secondary)); }
+        .typing-dot:nth-child(1) { animation-delay: -0.32s; }
+        .typing-dot:nth-child(2) { animation-delay: -0.16s; }
+        @keyframes typingBounce {
+            0%, 80%, 100% { transform: scale(0); opacity: 0.4; }
+            40% { transform: scale(1); opacity: 1; }
+        }
+
+        #theme-menu { transform: scale(0.9); opacity: 0; pointer-events: none; transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1); transform-origin: top right; }
+        #theme-menu.active { transform: scale(1); opacity: 1; pointer-events: auto; }
+        .theme-btn { width: 24px; height: 24px; border-radius: 50%; cursor: pointer; border: 2px solid transparent; transition: transform 0.2s; }
+        .theme-btn:hover { transform: scale(1.1); }
+        .theme-btn.selected { border-color: #fff; box-shadow: 0 0 0 2px rgb(var(--color-primary)); }
+
+        #loading-screen {
+            position: absolute; inset: 0; z-index: 100;
+            display: flex; flex-direction: column; justify-content: center; align-items: center;
+            background: rgba(255,255,255,0.9); backdrop-filter: blur(10px);
+            transition: opacity 0.5s ease;
+        }
+        .dark #loading-screen { background: rgba(15,23,42,0.9); }
+    </style>
+</head>
+<body class="dark:bg-slate-950 transition-colors duration-500">
+
+    <!-- Animasi Background (Blobs) -->
+    <div class="fixed inset-0 z-[-1] overflow-hidden bg-slate-100 dark:bg-[#020617] transition-colors duration-500">
+        <div class="absolute top-[-10%] left-[-10%] w-96 h-96 bg-primary opacity-20 dark:opacity-10 rounded-full mix-blend-multiply filter blur-3xl animate-blob"></div>
+        <div class="absolute top-[20%] right-[-10%] w-80 h-80 bg-secondary opacity-20 dark:opacity-10 rounded-full mix-blend-multiply filter blur-3xl animate-blob" style="animation-delay: 2s;"></div>
+        <div class="absolute bottom-[-20%] left-[20%] w-96 h-96 bg-purple-400 opacity-20 dark:opacity-10 rounded-full mix-blend-multiply filter blur-3xl animate-blob" style="animation-delay: 4s;"></div>
+    </div>
+
+    <div id="app-container">
+        
+        <!-- Loading Screen -->
+        <div id="loading-screen">
+            <i class="fa-solid fa-cloud-arrow-down text-5xl text-primary mb-4 animate-bounce"></i>
+            <h2 class="text-xl font-bold text-slate-800 dark:text-white">Menyinkronkan Data...</h2>
+            <p class="text-xs text-slate-500">Mengambil info terbaru dari Server</p>
+        </div>
+
+        <!-- Toast Notification Container -->
+        <div id="toast-container" class="absolute top-4 left-1/2 -translate-x-1/2 z-[100] flex flex-col gap-2 w-11/12 max-w-sm pointer-events-none"></div>
+
+        <!-- Header -->
+        <header class="px-6 py-4 flex justify-between items-center z-40 bg-white/70 dark:bg-[#0f172a]/70 backdrop-blur-xl border-b border-slate-200/50 dark:border-slate-800/50">
+            <div class="flex items-center gap-3">
+                <div class="w-11 h-11 rounded-2xl bg-gradient-to-br from-primary to-primaryDark flex items-center justify-center text-white font-extrabold text-sm shadow-[0_8px_15px_rgba(var(--color-primary),0.3)]">
+                    RT
+                </div>
+                <div>
+                    <h1 class="text-sm font-extrabold text-slate-800 dark:text-white leading-tight">Halo, Warga 👋</h1>
+                    <p class="text-[10px] font-semibold text-slate-500 dark:text-slate-400">RT 004 / 025 Teluk Pucung</p>
+                </div>
+            </div>
+            
+            <div class="flex gap-2 relative">
+                <button onclick="toggleThemeMenu()" class="w-10 h-10 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-primary dark:text-white transition-transform active:scale-90 shadow-sm border border-slate-200 dark:border-slate-700">
+                    <i class="fa-solid fa-palette"></i>
+                </button>
+                <button onclick="toggleDarkMode()" class="w-10 h-10 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-slate-600 dark:text-yellow-400 transition-transform active:scale-90 shadow-sm border border-slate-200 dark:border-slate-700">
+                    <i id="theme-icon" class="fa-solid fa-moon"></i>
+                </button>
+
+                <div id="theme-menu" class="absolute top-12 right-0 bg-white dark:bg-slate-800 p-3 rounded-2xl shadow-xl border border-slate-100 dark:border-slate-700 flex gap-2 z-50">
+                    <div onclick="setTheme('default')" class="theme-btn bg-blue-600 selected" data-theme-id="default"></div>
+                    <div onclick="setTheme('emerald')" class="theme-btn bg-emerald-500" data-theme-id="emerald"></div>
+                    <div onclick="setTheme('rose')" class="theme-btn bg-rose-600" data-theme-id="rose"></div>
+                    <div onclick="setTheme('violet')" class="theme-btn bg-violet-600" data-theme-id="violet"></div>
+                </div>
+            </div>
+        </header>
+
+        <!-- Main Content Area -->
+        <main id="content-area" class="has-bottom-nav">
+            
+            <!-- ================= PAGE: BERANDA ================= -->
+            <section id="page-home" class="page-view active px-5 pt-6">
+                
+                <!-- APP INFO BANNER -->
+                <div class="relative glass-card border-none bg-gradient-to-br from-slate-800 to-slate-900 dark:from-slate-800 dark:to-slate-950 text-white overflow-hidden shadow-lg mb-4">
+                    <div class="absolute -right-10 -top-10 w-32 h-32 bg-white/5 rounded-full blur-2xl"></div>
+                    <div class="relative z-10 flex items-center justify-between">
+                        <div>
+                            <h2 class="text-sm font-extrabold mb-0.5 tracking-tight text-white flex items-center gap-2">
+                                <i class="fa-solid fa-city text-primary"></i> Portal Digital RT
+                            </h2>
+                            <p class="text-[9px] text-slate-300 leading-snug mb-2 max-w-[200px]">Sistem Informasi & Layanan Administrasi Terpadu Warga.</p>
+                            <div class="flex gap-1.5 mt-2">
+                                <span class="text-[8px] font-bold bg-white/10 px-1.5 py-0.5 rounded border border-white/20"><i class="fa-solid fa-bolt text-yellow-400"></i> Cepat</span>
+                                <span class="text-[8px] font-bold bg-white/10 px-1.5 py-0.5 rounded border border-white/20"><i class="fa-solid fa-shield-halved text-emerald-400"></i> Aman</span>
+                            </div>
+                        </div>
+                        <div class="opacity-80">
+                            <i class="fa-solid fa-mobile-screen-button text-5xl text-slate-600"></i>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- AI HERO BANNER -->
+                <div class="relative glass-card border-none bg-gradient-to-r from-primary to-primaryDark text-white overflow-hidden shadow-[0_15px_30px_rgba(var(--color-primary),0.3)] mb-6 cursor-pointer group" onclick="openChat()">
+                    <div class="absolute -right-4 -top-4 w-32 h-32 bg-white/10 rounded-full blur-2xl"></div>
+                    <div class="absolute right-2 bottom-0 opacity-20 transform group-hover:scale-110 transition-transform duration-500">
+                        <i class="fa-solid fa-brain text-7xl"></i>
+                    </div>
+                    
+                    <div class="relative z-10 flex items-center gap-4">
+                        <div class="w-14 h-14 bg-white/20 rounded-2xl flex items-center justify-center backdrop-blur-md border border-white/40 flex-shrink-0 shadow-inner group-hover:rotate-12 transition-transform duration-300">
+                            <i class="fa-solid fa-robot text-2xl text-white drop-shadow-md animate-float"></i>
+                        </div>
+                        <div>
+                            <div class="flex items-center gap-1.5 mb-1.5 bg-white/20 w-fit px-2 py-0.5 rounded-full backdrop-blur-sm">
+                                <span class="w-2 h-2 rounded-full bg-secondary animate-pulse"></span>
+                                <span class="text-[9px] font-extrabold tracking-widest uppercase text-white drop-shadow-sm">Pemuda Pintar AI</span>
+                            </div>
+                            <h3 class="font-bold text-sm leading-tight mb-1 text-blue-50">Butuh bantuan asisten?</h3>
+                            <p class="text-[9px] text-blue-100/80 leading-snug font-medium">Tanya KTP, lapor keluhan, atau ngobrol cerdas.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- STATISTIK -->
+                <div class="grid grid-cols-3 gap-3 mb-3">
+                    <div class="glass-card flex flex-col items-center justify-center py-4">
+                        <div class="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center text-primary mb-2"><i class="fa-solid fa-house"></i></div>
+                        <div id="stat-rumah" class="text-2xl font-extrabold text-slate-800 dark:text-white leading-none mb-1">--</div>
+                        <div class="text-[9px] text-slate-500 font-extrabold tracking-widest uppercase">Rumah</div>
+                    </div>
+                    <div class="glass-card flex flex-col items-center justify-center py-4">
+                        <div class="w-10 h-10 rounded-full bg-secondary/10 flex items-center justify-center text-secondary mb-2"><i class="fa-solid fa-users"></i></div>
+                        <div id="stat-kk" class="text-2xl font-extrabold text-slate-800 dark:text-white leading-none mb-1">--</div>
+                        <div class="text-[9px] text-slate-500 font-extrabold tracking-widest uppercase">Keluarga</div>
+                    </div>
+                    <div class="glass-card flex flex-col items-center justify-center py-4">
+                        <div class="w-10 h-10 rounded-full bg-primaryDark/10 flex items-center justify-center text-primaryDark dark:text-primary mb-2"><i class="fa-solid fa-person"></i></div>
+                        <div id="stat-warga" class="text-2xl font-extrabold text-slate-800 dark:text-white leading-none mb-1">--</div>
+                        <div class="text-[9px] text-slate-500 font-extrabold tracking-widest uppercase">Warga</div>
+                    </div>
+                </div>
+                
+                <div class="grid grid-cols-2 gap-3 mb-8">
+                    <div class="glass-card flex flex-col items-center justify-center py-3">
+                        <div class="w-8 h-8 rounded-full bg-blue-500/10 flex items-center justify-center text-blue-500 mb-1"><i class="fa-solid fa-mars"></i></div>
+                        <div id="stat-laki" class="text-xl font-extrabold text-slate-800 dark:text-white leading-none mb-1">--</div>
+                        <div class="text-[9px] text-slate-500 font-extrabold tracking-widest uppercase">Laki-laki</div>
+                    </div>
+                    <div class="glass-card flex flex-col items-center justify-center py-3">
+                        <div class="w-8 h-8 rounded-full bg-pink-500/10 flex items-center justify-center text-pink-500 mb-1"><i class="fa-solid fa-venus"></i></div>
+                        <div id="stat-perempuan" class="text-xl font-extrabold text-slate-800 dark:text-white leading-none mb-1">--</div>
+                        <div class="text-[9px] text-slate-500 font-extrabold tracking-widest uppercase">Perempuan</div>
+                    </div>
+                </div>
+
+                <!-- APPS & LAYANAN -->
+                <div class="flex justify-between items-center mb-4">
+                    <h3 class="text-sm font-extrabold text-slate-800 dark:text-white">Akses Layanan</h3>
+                </div>
+                <div class="grid grid-cols-3 gap-4 mb-8">
+                    <div class="glass-card !p-4 flex flex-col items-center justify-center cursor-pointer hover:bg-primary hover:text-white group transition-colors" onclick="navTo('surat')">
+                        <i class="fa-solid fa-envelope-open-text text-2xl text-primary group-hover:text-white mb-2 transition-colors"></i>
+                        <span class="text-[10px] font-bold text-slate-600 dark:text-slate-300 group-hover:text-white">Surat</span>
+                    </div>
+                    <div class="glass-card !p-4 flex flex-col items-center justify-center cursor-pointer hover:bg-secondary hover:text-white group transition-colors" onclick="navTo('panduan')">
+                        <i class="fa-solid fa-book-open text-2xl text-secondary group-hover:text-white mb-2 transition-colors"></i>
+                        <span class="text-[10px] font-bold text-slate-600 dark:text-slate-300 group-hover:text-white">Panduan</span>
+                    </div>
+                    <div class="glass-card !p-4 flex flex-col items-center justify-center cursor-pointer hover:bg-primaryDark hover:text-white group transition-colors" onclick="navTo('pengurus')">
+                        <i class="fa-solid fa-sitemap text-2xl text-primaryDark group-hover:text-white mb-2 transition-colors"></i>
+                        <span class="text-[10px] font-bold text-slate-600 dark:text-slate-300 group-hover:text-white">Pengurus</span>
+                    </div>
+                </div>
+
+                <!-- AGENDA SLIDER -->
+                <div class="flex justify-between items-center mb-4">
+                    <h3 class="text-sm font-extrabold text-slate-800 dark:text-white">Agenda RT Terdekat</h3>
+                    <button onclick="navTo('info'); setTimeout(()=>switchInfoTab('agenda'), 100);" class="text-[10px] text-primary font-bold bg-primary/10 px-3 py-1.5 rounded-full hover:bg-primary/20 transition-colors">Semua <i class="fa-solid fa-chevron-right ml-1"></i></button>
+                </div>
+                <div id="home-agenda-container" class="flex overflow-x-auto gap-4 pb-4 no-scrollbar snap-x mb-4"></div>
+
+                <!-- KABAR LINGKUNGAN -->
+                <div class="flex justify-between items-center mb-4">
+                    <h3 class="text-sm font-extrabold text-slate-800 dark:text-white">Kabar Lingkungan</h3>
+                    <button onclick="navTo('info'); setTimeout(()=>switchInfoTab('berita'), 100);" class="text-[10px] text-primary font-bold bg-primary/10 px-3 py-1.5 rounded-full hover:bg-primary/20 transition-colors">Lainnya <i class="fa-solid fa-chevron-right ml-1"></i></button>
+                </div>
+                <div id="home-news-container" class="space-y-4 mb-4"></div>
+            </section>
+
+            <!-- ================= SUB-PAGE: SURAT PENGANTAR ================= -->
+            <section id="page-surat" class="page-view px-5 py-6">
+                <button onclick="navTo('home')" class="mb-6 text-slate-500 dark:text-slate-400 font-bold text-sm flex items-center gap-2 hover:text-primary transition-colors"><i class="fa-solid fa-arrow-left"></i> Kembali ke Beranda</button>
+                <div class="glass-card text-center py-10 px-6">
+                    <div class="w-24 h-24 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-6 text-5xl text-primary animate-pulse-slow">
+                        <i class="fa-solid fa-envelope-open-text"></i>
+                    </div>
+                    <h2 class="text-2xl font-extrabold text-slate-800 dark:text-white mb-3">Pengajuan Surat</h2>
+                    <p class="text-xs text-slate-500 dark:text-slate-400 mb-8 leading-relaxed">Ajukan pembuatan surat pengantar RT untuk KTP, KK, Domisili, SKCK, secara online. Dokumen akan disiapkan oleh pengurus.</p>
+                    <button onclick="window.open('https://forms.gle/dummy', '_blank')" class="w-full bg-gradient-to-r from-primary to-primaryDark text-white font-extrabold py-4 rounded-xl shadow-[0_10px_20px_rgba(var(--color-primary),0.3)] transition-all active:scale-95 flex justify-center items-center gap-2">
+                        Buka Formulir Pengajuan <i class="fa-solid fa-arrow-up-right-from-square"></i>
+                    </button>
+                </div>
+            </section>
+
+            <!-- ================= SUB-PAGE: PANDUAN ================= -->
+            <section id="page-panduan" class="page-view px-5 py-6">
+                <button onclick="navTo('home')" class="mb-6 text-slate-500 dark:text-slate-400 font-bold text-sm flex items-center gap-2 hover:text-primary transition-colors"><i class="fa-solid fa-arrow-left"></i> Kembali</button>
+                <h2 class="text-2xl font-extrabold text-slate-800 dark:text-white mb-6 flex items-center gap-3"><div class="p-2 bg-secondary/10 rounded-lg text-secondary"><i class="fa-solid fa-book-open"></i></div> Panduan Warga</h2>
+                <div id="panduan-container" class="space-y-4"></div>
+            </section>
+
+            <!-- ================= SUB-PAGE: PENGURUS ================= -->
+            <section id="page-pengurus" class="page-view px-5 py-6">
+                <button onclick="navTo('home')" class="mb-6 text-slate-500 dark:text-slate-400 font-bold text-sm flex items-center gap-2 hover:text-primary transition-colors"><i class="fa-solid fa-arrow-left"></i> Kembali</button>
+                <div class="flex justify-between items-end mb-6">
+                    <h2 class="text-2xl font-extrabold text-slate-800 dark:text-white flex items-center gap-3"><div class="p-2 bg-primary/10 rounded-lg text-primary"><i class="fa-solid fa-sitemap"></i></div> Struktur Pengurus</h2>
+                </div>
+                <div id="board-container" class="grid grid-cols-2 gap-3 pb-4"></div>
+            </section>
+
+            <!-- ================= PAGE: INFO & AGENDA ================= -->
+            <section id="page-info" class="page-view px-5 pt-6">
+                <h2 class="text-2xl font-extrabold text-slate-800 dark:text-white mb-6">Pusat Informasi</h2>
+                
+                <div class="flex bg-slate-200/50 dark:bg-slate-800 p-1.5 rounded-xl mb-6 shadow-inner border border-slate-200 dark:border-slate-700">
+                    <button id="tab-btn-berita" onclick="switchInfoTab('berita')" class="flex-1 py-2.5 text-xs font-bold rounded-lg bg-white dark:bg-slate-700 text-primary shadow-sm transition-all">Kabar Lingkungan</button>
+                    <button id="tab-btn-agenda" onclick="switchInfoTab('agenda')" class="flex-1 py-2.5 text-xs font-bold rounded-lg text-slate-500 dark:text-slate-400 transition-all">Agenda RT</button>
+                </div>
+
+                <div id="tab-content-berita" class="space-y-4 pb-4"></div>
+                <div id="tab-content-agenda" class="space-y-4 pb-4 hidden"></div>
+            </section>
+
+            <!-- ================= PAGE: PENGADUAN ================= -->
+            <section id="page-pengaduan" class="page-view px-5 pt-6">
+                <div class="text-center mb-8">
+                    <div class="inline-flex w-16 h-16 bg-rose-100 dark:bg-rose-900/30 text-rose-500 rounded-2xl items-center justify-center text-3xl mb-4 shadow-inner">
+                        <i class="fa-solid fa-bullhorn"></i>
+                    </div>
+                    <h2 class="text-2xl font-extrabold text-slate-800 dark:text-white mb-2">Lapor Pengurus</h2>
+                    <p class="text-xs text-slate-500 dark:text-slate-400 px-4 leading-relaxed">Punya keluhan terkait fasilitas rusak atau masalah keamanan? Sampaikan langsung, akan diteruskan via WhatsApp.</p>
+                </div>
+
+                <div class="glass-card !p-5">
+                    <form id="form-pengaduan" onsubmit="submitPengaduan(event)" class="space-y-4">
+                        <div>
+                            <input type="text" id="adu-nama" required class="w-full bg-slate-50 dark:bg-slate-900/50 border border-slate-200 dark:border-slate-700 rounded-xl px-4 py-3.5 text-sm focus:ring-2 focus:ring-primary outline-none dark:text-white transition-all font-medium" placeholder="Nama Lengkap">
+                        </div>
+                        <div>
+                            <input type="text" id="adu-rumah" required class="w-full bg-slate-50 dark:bg-slate-900/50 border border-slate-200 dark:border-slate-700 rounded-xl px-4 py-3.5 text-sm focus:ring-2 focus:ring-primary outline-none dark:text-white transition-all font-medium" placeholder="Blok / No Rumah">
+                        </div>
+                        <div>
+                            <select id="adu-kategori" required class="w-full bg-slate-50 dark:bg-slate-900/50 border border-slate-200 dark:border-slate-700 rounded-xl px-4 py-3.5 text-sm focus:ring-2 focus:ring-primary outline-none dark:text-white transition-all appearance-none font-medium text-slate-600 dark:text-slate-300">
+                                <option value="" disabled selected>Pilih Kategori Keluhan...</option>
+                                <option value="Fasilitas Umum">Fasilitas Umum</option>
+                                <option value="Keamanan">Keamanan</option>
+                                <option value="Kebersihan">Kebersihan Lingkungan</option>
+                                <option value="Lainnya">Lainnya</option>
+                            </select>
+                        </div>
+                        <div>
+                            <textarea id="adu-isi" required rows="4" class="w-full bg-slate-50 dark:bg-slate-900/50 border border-slate-200 dark:border-slate-700 rounded-xl px-4 py-3.5 text-sm focus:ring-2 focus:ring-primary outline-none dark:text-white transition-all resize-none font-medium" placeholder="Tuliskan detail keluhan..."></textarea>
+                        </div>
+                        <button type="submit" class="w-full bg-secondary hover:bg-emerald-600 text-white font-extrabold py-4 rounded-xl shadow-[0_8px_20px_rgba(var(--color-secondary),0.3)] transition-all active:scale-95 flex justify-center items-center gap-2 mt-2">
+                            Kirim via WhatsApp <i class="fa-brands fa-whatsapp text-xl"></i>
+                        </button>
+                    </form>
+                </div>
+            </section>
+
+            <!-- ================= PAGE: AKUN / ADMIN ================= -->
+            <section id="page-akun" class="page-view px-5 pt-6">
+                <!-- View Login -->
+                <div id="admin-login-view" class="mt-10">
+                    <div class="glass-card text-center py-10 px-6">
+                        <div class="w-20 h-20 bg-slate-100 dark:bg-slate-800 rounded-full flex items-center justify-center mx-auto mb-6 text-slate-800 dark:text-white text-3xl shadow-inner">
+                            <i class="fa-solid fa-lock"></i>
+                        </div>
+                        <h2 class="text-xl font-extrabold text-slate-800 dark:text-white mb-6">Portal Pengurus RT</h2>
+                        <input type="password" id="admin-pin" class="w-full bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl px-4 py-4 text-center tracking-[0.75em] text-xl font-black focus:ring-2 focus:ring-primary outline-none dark:text-white transition-all mb-4" placeholder="PIN">
+                        <button onclick="loginAdmin()" class="w-full bg-slate-800 dark:bg-white dark:text-slate-900 hover:bg-slate-900 text-white font-extrabold py-4 rounded-xl shadow-lg transition-transform active:scale-95 mb-3">Otentikasi Masuk</button>
+                        <p class="text-xs text-slate-500 font-semibold"><i class="fa-solid fa-circle-info text-primary"></i> Gunakan PIN simulasi: 1234</p>
+                    </div>
+                </div>
+
+                <!-- View Dashboard (CRUD Panel) -->
+                <div id="admin-dashboard-view" class="hidden pb-10">
+                    <div class="flex justify-between items-center mb-6 glass-card bg-gradient-to-r from-slate-800 to-slate-900 dark:from-slate-800 dark:to-slate-900 border-none !p-5">
+                        <div class="flex items-center gap-3">
+                            <i class="fa-solid fa-shield-halved text-2xl text-secondary"></i>
+                            <div>
+                                <h2 class="text-sm font-extrabold text-white">Panel Admin</h2>
+                                <p class="text-[10px] text-slate-300 uppercase tracking-widest font-bold">Akses Penuh</p>
+                            </div>
+                        </div>
+                        <button onclick="logoutAdmin()" class="text-white text-xs font-bold bg-rose-500 hover:bg-rose-600 px-3 py-2 rounded-lg transition-colors"><i class="fa-solid fa-power-off"></i></button>
+                    </div>
+
+                    <div class="space-y-5">
+                        <!-- 1. Statistik -->
+                        <div class="glass-card !p-5">
+                            <h3 class="text-sm font-extrabold text-slate-800 dark:text-white mb-4 flex items-center gap-2"><i class="fa-solid fa-chart-pie text-primary"></i> Statistik Warga</h3>
+                            <div class="grid grid-cols-3 gap-3 mb-4">
+                                <div>
+                                    <label class="text-[9px] text-slate-500 font-bold uppercase tracking-widest mb-1 block">Rumah</label>
+                                    <input type="number" id="edit-rumah" class="w-full bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg p-2.5 text-sm font-bold text-center outline-none focus:border-primary dark:text-white">
+                                </div>
+                                <div>
+                                    <label class="text-[9px] text-slate-500 font-bold uppercase tracking-widest mb-1 block">Keluarga</label>
+                                    <input type="number" id="edit-kk" class="w-full bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg p-2.5 text-sm font-bold text-center outline-none focus:border-primary dark:text-white">
+                                </div>
+                                <div>
+                                    <label class="text-[9px] text-slate-500 font-bold uppercase tracking-widest mb-1 block">Warga</label>
+                                    <input type="number" id="edit-warga" class="w-full bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg p-2.5 text-sm font-bold text-center outline-none focus:border-primary dark:text-white">
+                                </div>
+                            </div>
+                            <div class="grid grid-cols-2 gap-3 mb-4">
+                                <div>
+                                    <label class="text-[9px] text-slate-500 font-bold uppercase tracking-widest mb-1 block">Laki-laki</label>
+                                    <input type="number" id="edit-laki" class="w-full bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg p-2.5 text-sm font-bold text-center outline-none focus:border-primary dark:text-white">
+                                </div>
+                                <div>
+                                    <label class="text-[9px] text-slate-500 font-bold uppercase tracking-widest mb-1 block">Perempuan</label>
+                                    <input type="number" id="edit-perempuan" class="w-full bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg p-2.5 text-sm font-bold text-center outline-none focus:border-primary dark:text-white">
+                                </div>
+                            </div>
+                            <button onclick="saveStats()" class="w-full bg-primary text-white text-xs font-bold py-3 rounded-xl active:scale-95 transition-transform shadow-md hover:bg-primaryDark">Update Statistik</button>
+                        </div>
+
+                        <!-- 2. Panduan -->
+                        <div class="glass-card !p-5">
+                            <h3 class="text-sm font-extrabold text-slate-800 dark:text-white mb-4 flex items-center gap-2"><i class="fa-solid fa-book text-secondary"></i> Kelola Panduan</h3>
+                            <div id="admin-list-panduan" class="space-y-2 mb-4 max-h-40 overflow-y-auto pr-1 no-scrollbar"></div>
+                            <input type="text" id="add-panduan-title" placeholder="Judul Panduan (Misal: KTP Baru)" class="w-full bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg p-3 text-xs mb-2 outline-none dark:text-white font-medium">
+                            <textarea id="add-panduan-content" rows="3" placeholder="Langkah-langkah (pisahkan dengan Enter/Baris baru)..." class="w-full bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg p-3 text-xs mb-3 outline-none resize-none dark:text-white font-medium"></textarea>
+                            <button onclick="addPanduan()" class="w-full bg-secondary text-white text-xs font-bold py-3 rounded-xl active:scale-95 transition-transform shadow-md hover:brightness-90"><i class="fa-solid fa-plus mr-1"></i> Tambah Panduan</button>
+                        </div>
+
+                        <!-- 3. Kabar Lingkungan -->
+                        <div class="glass-card !p-5">
+                            <h3 class="text-sm font-extrabold text-slate-800 dark:text-white mb-4 flex items-center gap-2"><i class="fa-solid fa-newspaper text-primary"></i> Kabar Lingkungan</h3>
+                            <div id="admin-list-news" class="space-y-2 mb-4 max-h-40 overflow-y-auto pr-1 no-scrollbar"></div>
+                            <input type="text" id="add-news-title" placeholder="Judul Kabar" class="w-full bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg p-3 text-xs mb-2 outline-none dark:text-white font-medium">
+                            <textarea id="add-news-content" rows="2" placeholder="Isi detail..." class="w-full bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg p-3 text-xs mb-3 outline-none resize-none dark:text-white font-medium"></textarea>
+                            <button onclick="addNews()" class="w-full bg-primary text-white text-xs font-bold py-3 rounded-xl active:scale-95 transition-transform shadow-md hover:bg-primaryDark"><i class="fa-solid fa-plus mr-1"></i> Publish Kabar</button>
+                        </div>
+
+                        <!-- 4. Agenda -->
+                        <div class="glass-card !p-5">
+                            <h3 class="text-sm font-extrabold text-slate-800 dark:text-white mb-4 flex items-center gap-2"><i class="fa-solid fa-calendar-check text-amber-500"></i> Kelola Agenda</h3>
+                            <div id="admin-list-agenda" class="space-y-2 mb-4 max-h-40 overflow-y-auto pr-1 no-scrollbar"></div>
+                            <input type="text" id="add-agenda-title" placeholder="Nama Agenda" class="w-full bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg p-3 text-xs mb-2 outline-none dark:text-white font-medium">
+                            <div class="grid grid-cols-2 gap-2 mb-3">
+                                <input type="text" id="add-agenda-date" placeholder="Tgl (Misal: 10 Mei)" class="w-full bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg p-3 text-xs outline-none dark:text-white font-medium">
+                                <input type="text" id="add-agenda-loc" placeholder="Lokasi..." class="w-full bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg p-3 text-xs outline-none dark:text-white font-medium">
+                            </div>
+                            <button onclick="addAgenda()" class="w-full bg-amber-500 text-white text-xs font-bold py-3 rounded-xl active:scale-95 transition-transform shadow-md hover:bg-amber-600"><i class="fa-solid fa-plus mr-1"></i> Tambah Agenda</button>
+                        </div>
+
+                        <!-- 5. Pengurus -->
+                        <div class="glass-card !p-5">
+                            <h3 class="text-sm font-extrabold text-slate-800 dark:text-white mb-4 flex items-center gap-2"><i class="fa-solid fa-sitemap text-indigo-500"></i> Susunan Pengurus</h3>
+                            <div id="admin-list-board" class="space-y-2 mb-4 max-h-40 overflow-y-auto pr-1 no-scrollbar"></div>
+                            <div class="grid grid-cols-2 gap-2 mb-3">
+                                <input type="text" id="add-board-name" placeholder="Nama Lengkap" class="w-full bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg p-3 text-xs outline-none dark:text-white font-medium">
+                                <input type="text" id="add-board-role" placeholder="Jabatan" class="w-full bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg p-3 text-xs outline-none dark:text-white font-medium">
+                            </div>
+                            <button onclick="addBoard()" class="w-full bg-indigo-500 text-white text-xs font-bold py-3 rounded-xl active:scale-95 transition-transform shadow-md hover:bg-indigo-600"><i class="fa-solid fa-plus mr-1"></i> Tambah Pengurus</button>
+                        </div>
+
+                        <div class="text-center pt-4 pb-2">
+                            <button onclick="resetData()" class="text-[10px] text-rose-500 font-extrabold uppercase tracking-widest hover:underline opacity-80"><i class="fa-solid fa-triangle-exclamation"></i> Factory Reset DB</button>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+        </main>
+
+        <!-- ================= CHAT AI MODAL (WhatsApp Style) ================= -->
+        <div id="chat-modal" class="fixed inset-0 bg-slate-900/60 dark:bg-black/70 backdrop-blur-sm z-50 hidden flex-col justify-end transition-opacity opacity-0 duration-400">
+            <div class="wa-bg w-full h-full shadow-2xl flex flex-col transform transition-transform translate-y-full duration-400 overflow-hidden" id="chat-container">
+                <!-- Chat Header WA Style -->
+                <div class="flex justify-between items-center p-3 sm:p-4 bg-[#008069] dark:bg-[#202c33] text-white shadow-md z-20">
+                    <div class="flex items-center gap-2">
+                        <button onclick="closeChat()" class="w-8 h-8 rounded-full flex items-center justify-center hover:bg-white/20 transition-colors -ml-1">
+                            <i class="fa-solid fa-arrow-left text-lg"></i>
+                        </button>
+                        <div class="w-10 h-10 rounded-full bg-white flex items-center justify-center text-[#008069] shadow-sm relative">
+                            <i class="fa-solid fa-robot text-xl animate-float"></i>
+                            <span class="absolute bottom-0 right-0 w-3 h-3 border-2 border-[#008069] dark:border-[#202c33] rounded-full bg-emerald-400 animate-pulse"></span>
+                        </div>
+                        <div class="flex flex-col ml-1">
+                            <h3 class="font-bold text-base tracking-wide leading-tight">Pemuda Pintar AI</h3>
+                            <p class="text-[11px] font-medium text-white/80">Online</p>
+                        </div>
+                    </div>
+                    <div class="flex gap-4 pr-2">
+                        <i class="fa-solid fa-video text-white/90"></i>
+                        <i class="fa-solid fa-phone text-white/90"></i>
+                        <i class="fa-solid fa-ellipsis-vertical text-white/90"></i>
+                    </div>
+                </div>
+                
+                <!-- Chat Messages Area -->
+                <div id="chat-messages" class="flex-1 p-4 overflow-y-auto flex flex-col gap-2 relative scroll-smooth pb-4">
+                    <div class="chat-bubble chat-ai shadow-sm relative z-10 chat-animate">
+                        Halo Akang/Teteh warga RT 004! 👋 Saya <b>Pemuda Pintar</b>, asisten AI keren siap sedia 24 jam.<br><br>Selain bantu urusan RT (KTP, Surat, Lapor, Kepengurusan), kita juga bisa ngobrol santai lho! Mau nanya resep masakan, tips kesehatan, atau bantuin bikin tugas anak? Gas aja ketik pesannya di bawah! ✨
+                    </div>
+                    <!-- Suggested Prompts (Chips) -->
+                    <div id="quick-prompts" class="flex flex-wrap gap-2 mt-2 mb-2 z-10 chat-animate" style="animation-delay: 0.2s; opacity: 0;">
+                        <button onclick="forceChat('Bagaimana cara buat KTP baru?')" class="text-[11px] font-bold bg-white dark:bg-[#202c33] border border-gray-200 dark:border-slate-700 text-[#008069] dark:text-emerald-400 px-3 py-2.5 rounded-full shadow-sm hover:bg-gray-50 active:scale-95 transition-all">📄 Cara Buat KTP</button>
+                        <button onclick="forceChat('Punya resep masakan nasi goreng spesial yang gampang?')" class="text-[11px] font-bold bg-white dark:bg-[#202c33] border border-gray-200 dark:border-slate-700 text-[#008069] dark:text-emerald-400 px-3 py-2.5 rounded-full shadow-sm hover:bg-gray-50 active:scale-95 transition-all">🍳 Resep Nasi Goreng</button>
+                        <button onclick="forceChat('Saya mau lapor lampu jalan mati')" class="text-[11px] font-bold bg-white dark:bg-[#202c33] border border-gray-200 dark:border-slate-700 text-[#008069] dark:text-emerald-400 px-3 py-2.5 rounded-full shadow-sm hover:bg-gray-50 active:scale-95 transition-all">🚨 Lapor Masalah</button>
+                    </div>
+                </div>
+
+                <!-- Chat Input Area WA Style -->
+                <div class="p-2 sm:p-3 bg-transparent z-20 flex gap-2 items-end">
+                    <div class="flex-1 bg-white dark:bg-[#2a3942] rounded-3xl flex items-center px-2 py-1 shadow-sm border border-gray-200 dark:border-transparent min-h-[44px]">
+                        <button class="w-10 h-10 flex items-center justify-center text-gray-400 hover:text-gray-600 transition-colors">
+                            <i class="fa-regular fa-face-smile text-xl"></i>
+                        </button>
+                        <form onsubmit="sendChat(event)" class="flex-1 flex" id="chat-form">
+                            <input type="text" id="chat-input" class="w-full bg-transparent border-none px-2 py-2 text-base font-medium outline-none dark:text-white placeholder-gray-400" placeholder="Ketik pesan..." autocomplete="off">
+                        </form>
+                        <button class="w-10 h-10 flex items-center justify-center text-gray-400 hover:text-gray-600 transition-colors">
+                            <i class="fa-solid fa-paperclip text-lg"></i>
+                        </button>
+                    </div>
+                    <button onclick="document.getElementById('chat-form').dispatchEvent(new Event('submit'))" class="w-11 h-11 rounded-full bg-[#00a884] hover:bg-[#008f6f] text-white flex items-center justify-center shadow-md active:scale-90 transition-transform flex-shrink-0">
+                        <i class="fa-solid fa-paper-plane text-lg ml-1 mt-1"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Bottom Navigation Menu -->
+        <nav id="bottom-nav">
+            <div class="flex justify-between items-center w-full relative">
+                <div class="nav-item active" onclick="navTo('home')" data-target="home">
+                    <i class="fa-solid fa-house"></i>
+                    <span>Beranda</span>
+                </div>
+                <div class="nav-item" onclick="navTo('info')" data-target="info">
+                    <i class="fa-solid fa-newspaper"></i>
+                    <span>Informasi</span>
+                </div>
+                <div class="nav-item" onclick="navTo('pengaduan')" data-target="pengaduan">
+                    <i class="fa-solid fa-bullhorn"></i>
+                    <span>Lapor</span>
+                </div>
+                <div class="nav-item" onclick="navTo('akun')" data-target="akun">
+                    <i class="fa-solid fa-shield-halved"></i>
+                    <span>Admin</span>
+                </div>
+            </div>
+        </nav>
+        
+    </div>
+
+    <!-- MAIN JAVASCRIPT SEBAGAI MODULE (Wajib Untuk Database Cloud) -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getAuth, signInAnonymously, onAuthStateChanged, signInWithCustomToken } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, collection, doc, setDoc, onSnapshot, addDoc, deleteDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+        const fallbackConfig = {
+            apiKey: "YOUR_API_KEY",
+            authDomain: "YOUR_PROJECT_ID.firebaseapp.com",
+            projectId: "YOUR_PROJECT_ID",
+            storageBucket: "YOUR_PROJECT_ID.firebasestorage.app",
+            messagingSenderId: "YOUR_SENDER_ID",
+            appId: "YOUR_APP_ID"
+        };
+        
+        const isCanvasEnv = typeof __firebase_config !== 'undefined';
+        let firebaseConfig = fallbackConfig;
+        if (isCanvasEnv) {
+            try {
+                firebaseConfig = typeof __firebase_config === 'string' ? JSON.parse(__firebase_config) : __firebase_config;
+            } catch(e) { console.error("Config parse error"); }
+        }
+        
+        const appId = typeof __app_id !== 'undefined' ? __app_id : 'smart-rt-004-bekasi';
+
+        // 1. DATA DEFAULT RT (Pengurus Sesuai Hierarki, Agenda/Info Kosong)
+        const DEFAULT_DATA = {
+            stats: { rumah: 45, kk: 52, warga: 184, laki: 90, perempuan: 94 },
+            news: [],
+            agenda: [],
+            board: [
+                { name: "ROMADHON", role: "Ketua", img: "https://ui-avatars.com/api/?name=Romadhon&background=2563eb&color=fff&bold=true" },
+                { name: "FAJAR HAKIM", role: "Sekretaris", img: "https://ui-avatars.com/api/?name=Fajar+Hakim&background=10b981&color=fff&bold=true" },
+                { name: "PRASOJO SUDARMO", role: "Bendahara", img: "https://ui-avatars.com/api/?name=Prasojo+Sudarmo&background=f59e0b&color=fff&bold=true" },
+                { name: "IYAN SOPYAN", role: "Bid. Keamanan", img: "https://ui-avatars.com/api/?name=Iyan+Sopyan&background=475569&color=fff&bold=true" },
+                { name: "AGUS", role: "Bid. Keamanan", img: "https://ui-avatars.com/api/?name=Agus&background=475569&color=fff&bold=true" },
+                { name: "H. SUGIONO", role: "Bid. Kerohanian", img: "https://ui-avatars.com/api/?name=Sugiono&background=8b5cf6&color=fff&bold=true" },
+                { name: "ENJANG SUHERMAN", role: "Bid. Kerohanian", img: "https://ui-avatars.com/api/?name=Enjang+Suherman&background=8b5cf6&color=fff&bold=true" },
+                { name: "MASTUR", role: "Bid. Kebersihan", img: "https://ui-avatars.com/api/?name=Mastur&background=22c55e&color=fff&bold=true" },
+                { name: "BUDIARTI", role: "Bid. Sosbud", img: "https://ui-avatars.com/api/?name=Budiarti&background=ec4899&color=fff&bold=true" },
+                { name: "NUNI", role: "Bid. Sosbud", img: "https://ui-avatars.com/api/?name=Nuni&background=ec4899&color=fff&bold=true" },
+                { name: "IIS", role: "Bid. Sosbud", img: "https://ui-avatars.com/api/?name=Iis&background=ec4899&color=fff&bold=true" },
+                { name: "HAFIDZ ROCHIMI", role: "Bid. Pemuda & OR", img: "https://ui-avatars.com/api/?name=Hafidz+Rochimi&background=f97316&color=fff&bold=true" },
+                { name: "MUHDI DAROJAT", role: "Bid. Pemuda & OR", img: "https://ui-avatars.com/api/?name=Muhdi+Darojat&background=f97316&color=fff&bold=true" },
+                { name: "GILANG MUHAMMAD F", role: "Bid. Humas", img: "https://ui-avatars.com/api/?name=Gilang&background=3b82f6&color=fff&bold=true" },
+                { name: "THOMAS NAZARETH", role: "Bid. Humas", img: "https://ui-avatars.com/api/?name=Thomas&background=3b82f6&color=fff&bold=true" },
+                { name: "ZEFAN", role: "Bid. Humas", img: "https://ui-avatars.com/api/?name=Zefan&background=3b82f6&color=fff&bold=true" },
+                { name: "NADHA ISWARANIE", role: "Bid. Humas", img: "https://ui-avatars.com/api/?name=Nadha&background=3b82f6&color=fff&bold=true" },
+                { name: "HILDA CHANDRANINGRUM", role: "Bid. Humas", img: "https://ui-avatars.com/api/?name=Hilda&background=3b82f6&color=fff&bold=true" },
+                { name: "BAYU EKA PUTRA", role: "Bid. UMKM", img: "https://ui-avatars.com/api/?name=Bayu+Eka&background=14b8a6&color=fff&bold=true" },
+                { name: "MUHAMMAD FAIZAL", role: "Bid. UMKM", img: "https://ui-avatars.com/api/?name=M+Faizal&background=14b8a6&color=fff&bold=true" },
+                { name: "MARIA", role: "Bid. UMKM", img: "https://ui-avatars.com/api/?name=Maria&background=14b8a6&color=fff&bold=true" },
+                { name: "LUSI", role: "Bid. UMKM", img: "https://ui-avatars.com/api/?name=Lusi&background=14b8a6&color=fff&bold=true" },
+                { name: "MARTIN", role: "Bid. Arisan", img: "https://ui-avatars.com/api/?name=Martin&background=eab308&color=fff&bold=true" },
+                { name: "ELVIN", role: "Bid. Koperasi", img: "https://ui-avatars.com/api/?name=Elvin&background=06b6d4&color=fff&bold=true" },
+                { name: "URI SAMSURI", role: "Bid. Koperasi", img: "https://ui-avatars.com/api/?name=Uri+Samsuri&background=06b6d4&color=fff&bold=true" },
+                { name: "JOKO BUDIONO", role: "Bid. Kesenian", img: "https://ui-avatars.com/api/?name=Joko+B&background=d946ef&color=fff&bold=true" },
+                { name: "SOPIAH", role: "Bid. Kesenian", img: "https://ui-avatars.com/api/?name=Sopiah&background=d946ef&color=fff&bold=true" },
+                { name: "WAHYUNINGSIH", role: "Bid. Kesenian", img: "https://ui-avatars.com/api/?name=Wahyuningsih&background=d946ef&color=fff&bold=true" },
+                { name: "ENUNG ROSMAYANTI", role: "Bid. Konsumsi", img: "https://ui-avatars.com/api/?name=Enung+R&background=ef4444&color=fff&bold=true" }
+            ],
+            panduan: []
+        };
+
+        window.rtData = { stats: DEFAULT_DATA.stats, news: [], agenda: [], board: [], panduan: [] };
+        
+        let db, auth;
+
+        // Inisialisasi Database (Hanya jalan jika Firebase Config valid)
+        try {
+            if(isCanvasEnv && firebaseConfig.apiKey !== "YOUR_API_KEY") {
+                const app = initializeApp(firebaseConfig);
+                auth = getAuth(app);
+                db = getFirestore(app);
+            }
+        } catch(e) {
+            console.error("Firebase init failed:", e);
+        }
+
+        // =========================================================================
+        // SISTEM TOAST NOTIFICATION (Keterangan Berhasil)
+        // =========================================================================
+        window.showToast = (msg, type = 'success') => {
+            const container = document.getElementById('toast-container');
+            const toast = document.createElement('div');
+            const icon = type === 'success' ? '<i class="fa-solid fa-circle-check text-emerald-500 text-lg"></i>' : '<i class="fa-solid fa-triangle-exclamation text-rose-500 text-lg"></i>';
+            toast.className = `bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 shadow-[0_10px_30px_rgba(0,0,0,0.1)] rounded-2xl p-3.5 flex items-center gap-3 transform transition-all duration-300 translate-y-[-20px] opacity-0 pointer-events-auto`;
+            toast.innerHTML = `${icon} <span class="text-xs font-bold text-slate-800 dark:text-white">${msg}</span>`;
+            
+            container.appendChild(toast);
+            
+            requestAnimationFrame(() => {
+                toast.classList.remove('translate-y-[-20px]', 'opacity-0');
+                toast.classList.add('translate-y-0', 'opacity-100');
+            });
+
+            setTimeout(() => {
+                toast.classList.remove('translate-y-0', 'opacity-100');
+                toast.classList.add('translate-y-[-20px]', 'opacity-0');
+                setTimeout(() => toast.remove(), 300);
+            }, 3000);
+        };
+
+        // =========================================================================
+        // DATA ACCESS LAYER (Bisa Handle Firestore Cloud maupun LocalStorage)
+        // =========================================================================
+        async function fetchCollection(colName) {
+            if(isCanvasEnv && db && auth.currentUser) {
+                const colRef = collection(db, 'artifacts', appId, 'public', 'data', colName);
+                onSnapshot(colRef, (snapshot) => {
+                    // Jika data kosong di cloud tapi ada DEFAULT_DATA, kita inject otomatis (Kecuali news, agenda, panduan yang memang di-setting kosong dari awal)
+                    if(snapshot.empty && DEFAULT_DATA[colName].length > 0 && colName === 'board') {
+                        DEFAULT_DATA[colName].forEach(async (item) => {
+                            await addDoc(colRef, { ...item, createdAt: Date.now() });
+                        });
+                    } else {
+                        window.rtData[colName] = snapshot.docs.map(d => ({id: d.id, ...d.data()})).sort((a,b) => (b.createdAt || 0) - (a.createdAt || 0));
+                        renderAll();
+                    }
+                    hideLoader();
+                }, (error) => console.error("Snapshot error:", error));
+            } else {
+                let localData = JSON.parse(localStorage.getItem(`rt_${colName}`));
+                if(!localData || localData.length === 0) {
+                    localData = DEFAULT_DATA[colName].map((item, index) => ({ id: Date.now() + index.toString(), ...item, createdAt: Date.now() }));
+                    localStorage.setItem(`rt_${colName}`, JSON.stringify(localData));
+                }
+                window.rtData[colName] = localData.sort((a,b) => b.createdAt - a.createdAt);
+                renderAll();
+                hideLoader();
+            }
+        }
+
+        async function fetchStats() {
+            if(isCanvasEnv && db && auth.currentUser) {
+                const statsRef = doc(db, 'artifacts', appId, 'public', 'data', 'stats', 'current');
+                onSnapshot(statsRef, (docSnap) => {
+                    if (docSnap.exists()) {
+                        window.rtData.stats = docSnap.data();
+                    } else {
+                        setDoc(statsRef, DEFAULT_DATA.stats);
+                        window.rtData.stats = DEFAULT_DATA.stats;
+                    }
+                    renderAll();
+                }, (error) => console.error("Stats snapshot error:", error));
+            } else {
+                let s = JSON.parse(localStorage.getItem('rt_stats'));
+                if(!s) { s = DEFAULT_DATA.stats; localStorage.setItem('rt_stats', JSON.stringify(s)); }
+                window.rtData.stats = s;
+                renderAll();
+            }
+        }
+
+        window.dbAdd = async (colName, data) => {
+            data.createdAt = Date.now();
+            if(isCanvasEnv && db && auth.currentUser) {
+                await addDoc(collection(db, 'artifacts', appId, 'public', 'data', colName), data);
+            } else {
+                data.id = Date.now().toString();
+                window.rtData[colName].unshift(data);
+                localStorage.setItem(`rt_${colName}`, JSON.stringify(window.rtData[colName]));
+                renderAll();
+            }
+        }
+
+        window.dbDelete = async (colName, id) => {
+            if(isCanvasEnv && db && auth.currentUser) {
+                await deleteDoc(doc(db, 'artifacts', appId, 'public', 'data', colName, id));
+            } else {
+                window.rtData[colName] = window.rtData[colName].filter(item => item.id !== id);
+                localStorage.setItem(`rt_${colName}`, JSON.stringify(window.rtData[colName]));
+                renderAll();
+            }
+        }
+
+        window.dbSetStats = async (data) => {
+            window.rtData.stats = data;
+            renderAll(); 
+            if(isCanvasEnv && db && auth.currentUser) {
+                await setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'stats', 'current'), data);
+            } else {
+                localStorage.setItem('rt_stats', JSON.stringify(data));
+            }
+        }
+
+        // =========================================================================
+        // ENGINE RENDERING
+        // =========================================================================
+        function renderAll() {
+            const { stats, news, agenda, board, panduan } = window.rtData;
+
+            // Stats
+            if(stats) {
+                document.getElementById('stat-rumah').innerText = stats.rumah || '--';
+                document.getElementById('stat-kk').innerText = stats.kk || '--';
+                document.getElementById('stat-warga').innerText = stats.warga || '--';
+                document.getElementById('stat-laki').innerText = stats.laki || '--';
+                document.getElementById('stat-perempuan').innerText = stats.perempuan || '--';
+                document.getElementById('edit-rumah').value = stats.rumah || '';
+                document.getElementById('edit-kk').value = stats.kk || '';
+                document.getElementById('edit-warga').value = stats.warga || '';
+                document.getElementById('edit-laki').value = stats.laki || '';
+                document.getElementById('edit-perempuan').value = stats.perempuan || '';
+            }
+
+            // Agenda (Tampilan Kosong yang Elegan)
+            const emptyAgenda = `<div class="w-full text-center py-5 border-2 border-dashed border-slate-200 dark:border-slate-700 rounded-xl mb-4"><p class="text-xs font-semibold text-slate-400">Belum ada agenda terdekat</p></div>`;
+            document.getElementById('home-agenda-container').innerHTML = agenda.length > 0 ? agenda.map(a => `
+                <div class="min-w-[150px] glass-card snap-start !p-4 border-l-4 border-l-amber-500 hover:-translate-y-1 transition-transform">
+                    <div class="text-[10px] font-extrabold text-slate-400 mb-1 flex items-center gap-1"><i class="fa-regular fa-clock"></i> ${a.date}</div>
+                    <h4 class="text-xs font-extrabold text-slate-800 dark:text-white leading-tight mb-2 truncate">${a.title}</h4>
+                    <div class="text-[10px] text-slate-500 font-semibold truncate flex items-center gap-1"><i class="fa-solid fa-location-dot text-rose-500"></i> ${a.location}</div>
+                </div>
+            `).join('') : emptyAgenda;
+            
+            document.getElementById('tab-content-agenda').innerHTML = agenda.length > 0 ? agenda.map(a => `
+                <div class="glass-card flex justify-between items-center !p-4 border-l-4 border-l-amber-500">
+                    <div>
+                        <h4 class="text-sm font-extrabold text-slate-800 dark:text-white mb-1">${a.title}</h4>
+                        <div class="text-[10px] text-slate-500 font-bold"><i class="fa-regular fa-clock text-primary"></i> ${a.date} | ${a.time}</div>
+                    </div>
+                    <div class="text-[10px] bg-slate-100 dark:bg-slate-800/50 px-2.5 py-1.5 rounded-lg text-slate-600 dark:text-slate-300 font-bold flex items-center gap-1 border border-slate-200 dark:border-slate-700"><i class="fa-solid fa-location-dot text-rose-500"></i> ${a.location}</div>
+                </div>
+            `).join('') : emptyAgenda;
+
+            document.getElementById('admin-list-agenda').innerHTML = agenda.map(a => `
+                <div class="flex justify-between items-center bg-white dark:bg-slate-800 p-3 rounded-xl border border-slate-100 dark:border-slate-700 shadow-sm">
+                    <div class="truncate pr-2"><div class="text-[11px] font-bold dark:text-white truncate">${a.title}</div><div class="text-[9px] text-slate-500">${a.date}</div></div>
+                    <button onclick="delItem('agenda', '${a.id}')" class="text-rose-500 hover:text-rose-700 bg-rose-50 dark:bg-rose-900/30 w-7 h-7 rounded-lg flex items-center justify-center transition-colors"><i class="fa-solid fa-trash text-xs"></i></button>
+                </div>
+            `).join('');
+
+            // Kabar (Tampilan Kosong yang Elegan)
+            const emptyNews = `<div class="w-full text-center py-5 border-2 border-dashed border-slate-200 dark:border-slate-700 rounded-xl mb-4"><p class="text-xs font-semibold text-slate-400">Belum ada informasi terbaru</p></div>`;
+            const renderNews = news.map(n => `
+                <div class="glass-card flex gap-4 items-center !p-4 group mb-3">
+                    <div class="w-12 h-12 rounded-xl bg-blue-50 dark:bg-slate-800 flex items-center justify-center text-primary flex-shrink-0 group-hover:scale-110 transition-transform shadow-inner">
+                        <i class="fa-solid fa-newspaper text-xl"></i>
+                    </div>
+                    <div class="overflow-hidden w-full">
+                        <div class="flex justify-between items-center mb-1">
+                            <span class="text-[9px] font-extrabold text-primary bg-primary/10 px-2 py-0.5 rounded uppercase tracking-wider">${n.type}</span>
+                            <span class="text-[9px] text-slate-400 font-semibold">${n.date}</span>
+                        </div>
+                        <h4 class="text-sm font-extrabold text-slate-800 dark:text-white leading-tight truncate">${n.title}</h4>
+                        <p class="text-[11px] text-slate-500 mt-1 truncate font-medium">${n.content}</p>
+                    </div>
+                </div>
+            `).join('');
+            document.getElementById('home-news-container').innerHTML = news.length > 0 ? renderNews : emptyNews;
+            document.getElementById('tab-content-berita').innerHTML = news.length > 0 ? renderNews : emptyNews;
+
+            document.getElementById('admin-list-news').innerHTML = news.map(n => `
+                <div class="flex justify-between items-center bg-white dark:bg-slate-800 p-3 rounded-xl border border-slate-100 dark:border-slate-700 shadow-sm">
+                    <div class="truncate pr-2"><div class="text-[11px] font-bold dark:text-white truncate">${n.title}</div></div>
+                    <button onclick="delItem('news', '${n.id}')" class="text-rose-500 hover:text-rose-700 bg-rose-50 dark:bg-rose-900/30 w-7 h-7 rounded-lg flex items-center justify-center transition-colors"><i class="fa-solid fa-trash text-xs"></i></button>
+                </div>
+            `).join('');
+
+            // Pengurus (Hierarki KSB & Bidang)
+            const ksbRoles = ['Ketua', 'Sekretaris', 'Bendahara'];
+            const ksb = board.filter(b => ksbRoles.includes(b.role));
+            const bidang = board.filter(b => !ksbRoles.includes(b.role));
+
+            let boardHtml = '';
+            if (ksb.length > 0) {
+                boardHtml += `<div class="col-span-2"><h3 class="text-xs font-extrabold text-slate-800 dark:text-white uppercase tracking-wider mb-2 mt-2 border-b border-slate-200 dark:border-slate-700 pb-2">Pengurus Inti (KSB)</h3></div>`;
+                boardHtml += ksb.map(b => `
+                    <div class="glass-card text-center flex flex-col items-center !p-4 group border-b-4 border-b-primary shadow-md">
+                        <img src="${b.img}" alt="${b.name}" class="w-16 h-16 rounded-full mb-3 shadow-md border-2 border-white dark:border-slate-700 group-hover:scale-110 transition-transform">
+                        <h4 class="text-[11px] font-extrabold text-slate-800 dark:text-white truncate w-full mb-1">${b.name}</h4>
+                        <span class="text-[9px] font-bold text-primary bg-primary/10 px-2.5 py-1 rounded-full uppercase tracking-wider">${b.role}</span>
+                    </div>
+                `).join('');
+            }
+            if (bidang.length > 0) {
+                boardHtml += `<div class="col-span-2"><h3 class="text-xs font-extrabold text-slate-800 dark:text-white uppercase tracking-wider mb-2 mt-4 border-b border-slate-200 dark:border-slate-700 pb-2">Koordinator Bidang</h3></div>`;
+                boardHtml += bidang.map(b => `
+                    <div class="glass-card text-center flex flex-col items-center !p-3 group">
+                        <img src="${b.img}" alt="${b.name}" class="w-12 h-12 rounded-full mb-2 shadow-sm border-2 border-white dark:border-slate-700 group-hover:scale-110 transition-transform">
+                        <h4 class="text-[10px] font-extrabold text-slate-800 dark:text-white truncate w-full mb-1">${b.name}</h4>
+                        <span class="text-[8px] font-bold text-secondary bg-secondary/10 px-2 py-0.5 rounded-full uppercase tracking-wider truncate max-w-full">${b.role}</span>
+                    </div>
+                `).join('');
+            }
+            document.getElementById('board-container').innerHTML = boardHtml || '<div class="col-span-2 text-center py-5"><p class="text-xs text-slate-400">Belum ada data pengurus</p></div>';
+
+            document.getElementById('admin-list-board').innerHTML = board.map(b => `
+                <div class="flex justify-between items-center bg-white dark:bg-slate-800 p-3 rounded-xl border border-slate-100 dark:border-slate-700 shadow-sm">
+                    <div class="truncate pr-2"><div class="text-[11px] font-bold dark:text-white truncate">${b.name}</div><div class="text-[9px] text-slate-500">${b.role}</div></div>
+                    <button onclick="delItem('board', '${b.id}')" class="text-rose-500 hover:text-rose-700 bg-rose-50 dark:bg-rose-900/30 w-7 h-7 rounded-lg flex items-center justify-center transition-colors"><i class="fa-solid fa-trash text-xs"></i></button>
+                </div>
+            `).join('');
+
+            // Panduan
+            const emptyPanduan = `<div class="w-full text-center py-5 border-2 border-dashed border-slate-200 dark:border-slate-700 rounded-xl mb-4"><p class="text-xs font-semibold text-slate-400">Belum ada panduan layanan</p></div>`;
+            document.getElementById('panduan-container').innerHTML = panduan.length > 0 ? panduan.map(p => `
+                <details class="glass-card group cursor-pointer p-0 overflow-hidden mb-3">
+                    <summary class="font-extrabold text-sm list-none flex justify-between items-center text-slate-700 dark:text-slate-200 outline-none p-5 bg-white/50 dark:bg-slate-800/50 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors">
+                        <span class="flex items-center gap-2"><i class="fa-solid fa-check-circle text-secondary"></i> ${p.title}</span>
+                        <div class="w-6 h-6 rounded-full bg-slate-100 dark:bg-slate-700 flex items-center justify-center group-open:rotate-180 transition-transform"><i class="fa-solid fa-chevron-down text-slate-400 text-[10px]"></i></div>
+                    </summary>
+                    <div class="p-5 border-t border-slate-100 dark:border-slate-700 text-xs text-slate-600 dark:text-slate-400 leading-relaxed bg-white/30 dark:bg-darkCard/30 font-medium">
+                        <ul class="list-decimal pl-5 space-y-2">
+                            ${p.content.map(li => `<li>${li}</li>`).join('')}
+                        </ul>
+                    </div>
+                </details>
+            `).join('') : emptyPanduan;
+
+            document.getElementById('admin-list-panduan').innerHTML = panduan.map(p => `
+                <div class="flex justify-between items-center bg-white dark:bg-slate-800 p-3 rounded-xl border border-slate-100 dark:border-slate-700 shadow-sm">
+                    <div class="truncate pr-2"><div class="text-[11px] font-bold dark:text-white truncate">${p.title}</div></div>
+                    <button onclick="delItem('panduan', '${p.id}')" class="text-rose-500 hover:text-rose-700 bg-rose-50 dark:bg-rose-900/30 w-7 h-7 rounded-lg flex items-center justify-center transition-colors"><i class="fa-solid fa-trash text-xs"></i></button>
+                </div>
+            `).join('');
+        }
+
+        // =========================================================================
+        // UI & NAVIGATION LOGIC
+        // =========================================================================
+        let isLoaded = false;
+        function hideLoader() {
+            if(!isLoaded) {
+                const loader = document.getElementById('loading-screen');
+                if(loader) {
+                    loader.style.opacity = '0';
+                    setTimeout(() => loader.style.display = 'none', 500);
+                }
+                isLoaded = true;
+            }
+        }
+        setTimeout(hideLoader, 3000); // Failsafe loader 3 detik
+
+        window.toggleThemeMenu = () => document.getElementById('theme-menu').classList.toggle('active');
+        window.setTheme = (themeName) => {
+            document.documentElement.setAttribute('data-theme', themeName);
+            localStorage.setItem('theme_color', themeName);
+            document.querySelectorAll('.theme-btn').forEach(btn => btn.classList.remove('selected'));
+            document.querySelector(`.theme-btn[data-theme-id="${themeName}"]`).classList.add('selected');
+            window.toggleThemeMenu();
+        }
+        window.toggleDarkMode = () => {
+            const html = document.documentElement; html.classList.toggle('dark');
+            const icon = document.getElementById('theme-icon');
+            if(html.classList.contains('dark')) {
+                icon.classList.remove('fa-moon'); icon.classList.add('fa-sun');
+                localStorage.setItem('theme_mode', 'dark');
+            } else {
+                icon.classList.remove('fa-sun'); icon.classList.add('fa-moon');
+                localStorage.setItem('theme_mode', 'light');
+            }
+        }
+        window.navTo = (pageId) => {
+            document.querySelectorAll('.page-view').forEach(el => el.classList.remove('active'));
+            document.getElementById(`page-${pageId}`).classList.add('active');
+            
+            const mainPages = ['home', 'info', 'pengaduan', 'akun'];
+            const bottomNav = document.getElementById('bottom-nav');
+            const contentArea = document.getElementById('content-area');
+            
+            if(mainPages.includes(pageId)) {
+                bottomNav.classList.remove('hidden-nav');
+                contentArea.classList.add('has-bottom-nav');
+                document.querySelectorAll('#bottom-nav .nav-item').forEach(el => el.classList.remove('active'));
+                const navBtn = document.querySelector(`.nav-item[data-target="${pageId}"]`);
+                if(navBtn) navBtn.classList.add('active');
+            } else {
+                bottomNav.classList.add('hidden-nav');
+                contentArea.classList.remove('has-bottom-nav');
+            }
+            contentArea.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+        window.switchInfoTab = (tab) => {
+            const activeClass = "flex-1 py-2.5 text-xs font-bold rounded-lg bg-white dark:bg-slate-700 text-primary shadow-sm transition-all";
+            const inactiveClass = "flex-1 py-2.5 text-xs font-bold rounded-lg text-slate-500 dark:text-slate-400 transition-all hover:bg-slate-100 dark:hover:bg-slate-700/50";
+            if(tab === 'berita') {
+                document.getElementById('tab-content-berita').classList.remove('hidden'); document.getElementById('tab-content-agenda').classList.add('hidden');
+                document.getElementById('tab-btn-berita').className = activeClass; document.getElementById('tab-btn-agenda').className = inactiveClass;
+            } else {
+                document.getElementById('tab-content-berita').classList.add('hidden'); document.getElementById('tab-content-agenda').classList.remove('hidden');
+                document.getElementById('tab-btn-agenda').className = activeClass; document.getElementById('tab-btn-berita').className = inactiveClass;
+            }
+        }
+
+        // =========================================================================
+        // ADMIN PANEL CRUD (Terkoneksi Toast & Database)
+        // =========================================================================
+        window.loginAdmin = () => {
+            if(document.getElementById('admin-pin').value === '1234') {
+                document.getElementById('admin-login-view').classList.add('hidden');
+                document.getElementById('admin-dashboard-view').classList.remove('hidden');
+                document.getElementById('admin-pin').value = '';
+                showToast("Berhasil masuk Panel Admin");
+            } else showToast('PIN Salah! (Coba: 1234)', 'error');
+        }
+        window.logoutAdmin = () => {
+            document.getElementById('admin-dashboard-view').classList.add('hidden');
+            document.getElementById('admin-login-view').classList.remove('hidden');
+            showToast("Berhasil Logout");
+        }
+        window.saveStats = () => {
+            const r = document.getElementById('edit-rumah').value;
+            const k = document.getElementById('edit-kk').value;
+            const w = document.getElementById('edit-warga').value;
+            const l = document.getElementById('edit-laki').value;
+            const p = document.getElementById('edit-perempuan').value;
+            window.dbSetStats({ rumah: r, kk: k, warga: w, laki: l, perempuan: p });
+            showToast('Data Statistik berhasil diperbarui!');
+        }
+        window.delItem = (type, id) => {
+            if(!confirm('Hapus data ini secara permanen?')) return;
+            window.dbDelete(type, id);
+            showToast('Data berhasil dihapus dari sistem');
+        }
+        window.addNews = () => {
+            const title = document.getElementById('add-news-title').value;
+            const content = document.getElementById('add-news-content').value;
+            if(!title || !content) return showToast('Isi judul & konten!', 'error');
+            window.dbAdd('news', { title, content, date: "Hari Ini", type: "Info" });
+            document.getElementById('add-news-title').value = ''; document.getElementById('add-news-content').value = '';
+            showToast('Kabar berhasil dipublikasikan!');
+        }
+        window.addAgenda = () => {
+            const title = document.getElementById('add-agenda-title').value;
+            const date = document.getElementById('add-agenda-date').value;
+            const loc = document.getElementById('add-agenda-loc').value;
+            if(!title || !date) return showToast('Isi minimal judul & tanggal!', 'error');
+            window.dbAdd('agenda', { title, date, time: "-", location: loc || "-" });
+            document.getElementById('add-agenda-title').value = ''; document.getElementById('add-agenda-date').value = ''; document.getElementById('add-agenda-loc').value = '';
+            showToast('Agenda berhasil ditambahkan!');
+        }
+        window.addBoard = () => {
+            const name = document.getElementById('add-board-name').value;
+            const role = document.getElementById('add-board-role').value;
+            if(!name || !role) return showToast('Isi nama & jabatan!', 'error');
+            const img = `https://ui-avatars.com/api/?name=${encodeURIComponent(name)}&background=475569&color=fff&bold=true`;
+            window.dbAdd('board', { name, role, img });
+            document.getElementById('add-board-name').value = ''; document.getElementById('add-board-role').value = '';
+            showToast('Data Pengurus berhasil ditambah!');
+        }
+        window.addPanduan = () => {
+            const title = document.getElementById('add-panduan-title').value;
+            const rawContent = document.getElementById('add-panduan-content').value;
+            if(!title || !rawContent) return showToast('Isi Judul dan langkah!', 'error');
+            const contentArray = rawContent.split('\n').map(l => l.trim()).filter(l => l.length > 0);
+            window.dbAdd('panduan', { title, content: contentArray });
+            document.getElementById('add-panduan-title').value = ''; document.getElementById('add-panduan-content').value = '';
+            showToast('Panduan layanan ditambahkan!');
+        }
+        window.resetData = () => {
+            if(confirm('Peringatan: Semua data yang Anda buat akan terhapus. Lanjutkan?')) {
+                if(!isCanvasEnv) localStorage.clear();
+                window.location.reload();
+            }
+        }
+        window.submitPengaduan = (e) => {
+            e.preventDefault();
+            const text = `*🚨 LAPORAN SMART RT*%0A%0A*Nama:* ${document.getElementById('adu-nama').value}%0A*Blok/No:* ${document.getElementById('adu-rumah').value}%0A*Kategori:* ${document.getElementById('adu-kategori').value}%0A*Isi:* ${document.getElementById('adu-isi').value}`;
+            window.open(`https://wa.me/6281234567890?text=${text}`, '_blank');
+            e.target.reset();
+        }
+
+        // =========================================================================
+        // GOOGLE GEMINI AI CHAT LOGIC (WA Style)
+        // =========================================================================
+        const apiKey = ""; // API Key Gemini (Otomatis disediakan environment Canvas)
+        const chatInput = document.getElementById('chat-input');
+        const chatMessages = document.getElementById('chat-messages');
+        const quickPrompts = document.getElementById('quick-prompts');
+
+        window.openChat = () => {
+            document.getElementById('chat-modal').classList.remove('hidden');
+            setTimeout(() => {
+                document.getElementById('chat-modal').classList.remove('opacity-0');
+                document.getElementById('chat-container').classList.remove('translate-y-full');
+            }, 10);
+            setTimeout(()=> chatInput.focus(), 400);
+        }
+        window.closeChat = () => {
+            document.getElementById('chat-container').classList.add('translate-y-full');
+            document.getElementById('chat-modal').classList.add('opacity-0');
+            setTimeout(() => document.getElementById('chat-modal').classList.add('hidden'), 400);
+        }
+        window.forceChat = (text) => {
+            chatInput.value = text;
+            if(quickPrompts) quickPrompts.style.display = 'none';
+            document.querySelector('#chat-form').dispatchEvent(new Event('submit'));
+        }
+
+        async function callGeminiAPI(prompt, retryCount = 0) {
+            const systemPrompt = "Kamu adalah 'Pemuda Pintar', asisten AI keren, ramah, dan sangat akrab untuk warga RT 004/025 Teluk Pucung Bekasi. Gunakan sapaan akrab (Akang/Teteh/Bapak/Ibu/Warga). Kamu adalah asisten serba bisa! Kamu BISA ngobrol topik umum seperti ChatGPT (kasih resep masakan, tips kesehatan, bantuin tugas sekolah, nulis puisi, curhat, dll). JAWAB pertanyaan umum tersebut dengan bersemangat. NAMUN, KHUSUS jika ada yang nanya cara urus KTP/KK/Surat arahkan ke menu 'Surat', info kepengurusan ke menu 'Pengurus', dan masalah keamanan/kerusakan ke menu 'Lapor'. Gunakan emoji dengan natural dan asik!";
+            const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${apiKey}`;
+            
+            try {
+                const response = await fetch(url, { 
+                    method: 'POST', headers: { 'Content-Type': 'application/json' }, 
+                    body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }], systemInstruction: { parts: [{ text: systemPrompt }] } }) 
+                });
+                if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+                const data = await response.json();
+                return data.candidates?.[0]?.content?.parts?.[0]?.text || "Hmm, saya agak bingung memproses itu.";
+            } catch (error) {
+                if (retryCount < 3) {
+                    await new Promise(r => setTimeout(r, [1000, 2000, 4000][retryCount]));
+                    return callGeminiAPI(prompt, retryCount + 1);
+                }
+                return dummyAIResponse(prompt);
+            }
+        }
+
+        function dummyAIResponse(msg) {
+            const lower = msg.toLowerCase();
+            if(lower.includes('ktp') || lower.includes('surat') || lower.includes('kk')) 
+                return "Wah gampang banget Akang/Teteh! Silakan kembali ke Beranda, lalu klik ikon <b>Surat</b>. Pengurus kita siap bantu. 🚀";
+            if(lower.includes('pengurus') || lower.includes('rt') || lower.includes('ketua'))
+                return "Bapak Ketua RT kita Pak Romadhon. Cek susunan super lengkapnya di menu <b>Pengurus</b> ya! 👨‍💼";
+            if(lower.includes('rusak') || lower.includes('sampah') || lower.includes('lapor'))
+                return "Waduh! Lapor aja langsung lewat menu <b>Lapor</b> di bagian bawah. Pesanmu bakal masuk ke WhatsApp pengurus, jadi cepat ditangani! 🚨";
+            if(lower.includes('halo') || lower.includes('hai'))
+                return "Halo warga RT 004! 👋 Kumaha damang? Ada yang bisa dibantu hari ini? 😊";
+            return "Hai warga! Maaf nih, Pemuda Pintar lagi mode standar (koneksi API belum aktif). Tapi tenang aja, kamu tetep bisa tanya seputar Surat, Lapor, atau Pengurus! 🤖";
+        }
+
+        window.sendChat = async (e) => {
+            e.preventDefault();
+            const msg = chatInput.value.trim();
+            if(!msg) return;
+            if(quickPrompts) quickPrompts.style.display = 'none';
+
+            chatMessages.innerHTML += `<div class="chat-bubble chat-user chat-animate relative z-10 font-medium">${msg}</div>`;
+            chatInput.value = '';
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+
+            const typingId = 'typing-' + Date.now();
+            chatMessages.innerHTML += `
+                <div id="${typingId}" class="chat-bubble chat-ai chat-animate relative z-10 w-[70px] text-center">
+                    <div class="typing-dots"><div class="typing-dot"></div><div class="typing-dot"></div><div class="typing-dot"></div></div>
+                </div>`;
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+
+            const aiText = await callGeminiAPI(msg);
+            document.getElementById(typingId).remove();
+            
+            let formattedText = aiText.replace(/\*\*(.*?)\*\*/g, '<b class="text-[#008069] dark:text-emerald-400">$1</b>').replace(/\n/g, '<br>');
+            chatMessages.innerHTML += `<div class="chat-bubble chat-ai chat-animate shadow-md relative z-10 font-medium">${formattedText}</div>`;
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+        }
+
+        // =========================================================================
+        // INISIALISASI SAAT HALAMAN DIMUAT (Otentikasi & Database)
+        // =========================================================================
+        window.addEventListener('load', async () => {
+            const savedTheme = localStorage.getItem('theme_color') || 'default';
+            setTheme(savedTheme);
+
+            if (localStorage.getItem('theme_mode') === 'dark' || (!('theme_mode' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+                document.documentElement.classList.add('dark');
+                document.getElementById('theme-icon').classList.replace('fa-moon', 'fa-sun');
+            }
+            
+            if(isCanvasEnv && db) {
+                try {
+                    const initAuth = async () => {
+                        if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
+                            await signInWithCustomToken(auth, __initial_auth_token);
+                        } else {
+                            await signInAnonymously(auth);
+                        }
+                    };
+                    
+                    onAuthStateChanged(auth, user => {
+                        if(user) {
+                            fetchStats();
+                            fetchCollection('news');
+                            fetchCollection('agenda');
+                            fetchCollection('board');
+                            fetchCollection('panduan');
+                        }
+                    });
+                    
+                    initAuth();
+                } catch(e) { console.error("Auth Exception:", e); fetchStats(); }
+            } else {
+                fetchStats();
+                fetchCollection('news');
+                fetchCollection('agenda');
+                fetchCollection('board');
+                fetchCollection('panduan');
+            }
+            
+            document.addEventListener('click', function(event) {
+                const menu = document.getElementById('theme-menu');
+                const btn = event.target.closest('button[onclick="toggleThemeMenu()"]');
+                if (!menu.contains(event.target) && !btn) menu.classList.remove('active');
+            });
+        });
+    </script>
+</body>
+</html>
