@@ -1,7 +1,6 @@
-```javascript
 module.exports = async (req, res) => {
 
-  // hanya izinkan POST
+  // hanya POST
   if (req.method !== "POST") {
     return res.status(405).json({
       error: "Method tidak diizinkan"
@@ -10,38 +9,57 @@ module.exports = async (req, res) => {
 
   try {
 
-    // ambil pesan dari berbagai format body
-    let message =
-      req.body?.message ||
-      req.body?.text ||
-      req.body?.prompt ||
-      req.body?.chat ||
-      "";
+    let message = "";
 
-    // fallback jika body string
-    if (!message && typeof req.body === "string") {
-      message = req.body;
+    // =========================
+    // FORMAT JSON
+    // =========================
+    if (req.body) {
+
+      if (typeof req.body === "string") {
+        message = req.body;
+      }
+
+      // jika object
+      if (typeof req.body === "object") {
+
+        message =
+          req.body.message ||
+          req.body.text ||
+          req.body.prompt ||
+          req.body.chat ||
+          "";
+      }
     }
 
-    // fallback query
-    if (!message) {
+    // =========================
+    // FORMAT FORM DATA
+    // =========================
+    if (!message && req.query) {
+
       message =
-        req.query?.message ||
-        req.query?.text ||
+        req.query.message ||
+        req.query.text ||
+        req.query.prompt ||
         "";
     }
 
-    // default supaya tidak error
+    // =========================
+    // DEBUG
+    // =========================
+    console.log("BODY:", req.body);
+    console.log("QUERY:", req.query);
+    console.log("MESSAGE:", message);
+
+    // fallback supaya tidak 400 terus
     if (!message || message.trim() === "") {
       message = "Halo";
     }
 
-    // model Gemini yang stabil
-    const MODEL = "gemini-1.5-flash";
-
     // request ke Gemini
     const response = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/${MODEL}:generateContent?key=${process.env.GEMINI_API_KEY}`,
+      "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=" +
+      process.env.GEMINI_API_KEY,
       {
         method: "POST",
         headers: {
@@ -61,15 +79,6 @@ module.exports = async (req, res) => {
       }
     );
 
-    // handle rate limit
-    if (response.status === 429) {
-      return res.status(200).json({
-        success: false,
-        reply: "AI sedang sibuk, coba lagi beberapa detik."
-      });
-    }
-
-    // ambil response
     const data = await response.json();
 
     console.log("GEMINI:", JSON.stringify(data, null, 2));
@@ -77,9 +86,9 @@ module.exports = async (req, res) => {
     // ambil jawaban AI
     const reply =
       data?.candidates?.[0]?.content?.parts?.[0]?.text ||
-      "Maaf, AI tidak memberi jawaban.";
+      "AI tidak memberi jawaban.";
 
-    // kirim ke frontend
+    // sukses
     return res.status(200).json({
       success: true,
       reply: reply
@@ -87,7 +96,7 @@ module.exports = async (req, res) => {
 
   } catch (error) {
 
-    console.error("CHAT ERROR:", error);
+    console.error("ERROR:", error);
 
     return res.status(500).json({
       success: false,
@@ -97,4 +106,3 @@ module.exports = async (req, res) => {
   }
 
 };
-```
