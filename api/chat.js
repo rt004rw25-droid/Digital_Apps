@@ -9,25 +9,55 @@ module.exports = async (req, res) => {
 
   try {
 
+    let message = "";
+
+    // =========================
+    // FORMAT JSON
+    // =========================
+    if (req.body) {
+
+      if (typeof req.body === "string") {
+        message = req.body;
+      }
+
+      // jika object
+      if (typeof req.body === "object") {
+
+        message =
+          req.body.message ||
+          req.body.text ||
+          req.body.prompt ||
+          req.body.chat ||
+          "";
+      }
+    }
+
+    // =========================
+    // FORMAT FORM DATA
+    // =========================
+    if (!message && req.query) {
+
+      message =
+        req.query.message ||
+        req.query.text ||
+        req.query.prompt ||
+        "";
+    }
+
+    // =========================
+    // DEBUG
+    // =========================
     console.log("BODY:", req.body);
+    console.log("QUERY:", req.query);
+    console.log("MESSAGE:", message);
 
-    // support banyak format body
-    const message =
-      req.body?.message ||
-      req.body?.text ||
-      req.body?.prompt ||
-      req.body?.chat ||
-      "";
-
-    // cek pesan kosong
+    // fallback supaya tidak 400 terus
     if (!message || message.trim() === "") {
-      return res.status(400).json({
-        error: "Pesan kosong"
-      });
+      message = "Halo";
     }
 
     // request ke Gemini
-    const geminiResponse = await fetch(
+    const response = await fetch(
       "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=" +
       process.env.GEMINI_API_KEY,
       {
@@ -49,7 +79,7 @@ module.exports = async (req, res) => {
       }
     );
 
-    const data = await geminiResponse.json();
+    const data = await response.json();
 
     console.log("GEMINI:", JSON.stringify(data, null, 2));
 
@@ -58,7 +88,7 @@ module.exports = async (req, res) => {
       data?.candidates?.[0]?.content?.parts?.[0]?.text ||
       "AI tidak memberi jawaban.";
 
-    // response sukses
+    // sukses
     return res.status(200).json({
       success: true,
       reply: reply
