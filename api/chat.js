@@ -1,4 +1,4 @@
-```js id="n0awit"
+```js id="s44wde"
 export default async function handler(req, res) {
 
     if (req.method !== 'POST') {
