@@ -1348,10 +1348,10 @@
                     });
                     
                     const ratio = imgProps.w / imgProps.h;
-                    let targetW = 42; let targetH = 42; 
+                    let targetW = 43; let targetH = 42; 
                     if (ratio > 1) { targetH = targetW / ratio; } else { targetW = targetH * ratio; }
                     
-                    const xPos = 17 + (42 - targetW) / 2; const yPos = 12;
+                    const xPos = 15 + (43 - targetW) / 2; const yPos = 14;
                     doc.addImage(logoBase64, 'PNG', xPos, yPos, targetW, targetH);
                 } catch(err) { console.log("Logo PDF gagal dimuat ke dalam kertas."); }
 
