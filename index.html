@@ -1,0 +1,1776 @@
+<!DOCTYPE html>
+<!-- Tag HTML ini menandakan bahwa dokumen ini berbahasa Indonesia -->
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <!-- Meta viewport ini sangat penting agar tampilan web menyesuaikan ukuran layar HP dan mengunci fitur Zoom -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0">
+    <meta name="theme-color" content="#059669">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <title>RT 004 Digital</title>
+    
+    <!-- Memanggil Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Memanggil FontAwesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Memanggil Font Inter -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Memanggil jsPDF -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+
+    <!-- BAGIAN PWA (Progressive Web App) -->
+    <!-- Dilindungi dengan Try-Catch agar tidak error di Gemini Preview -->
+    <script>
+        try {
+            const manifestJSON = {
+                "name": "RT 004 Digital",
+                "short_name": "RT 004",
+                "start_url": window.location.href,
+                "display": "standalone",
+                "background_color": "#ffffff",
+                "theme_color": "#059669",
+                "icons": [{
+                    "src": "https://www.image2url.com/r2/default/images/1778052352511-e28abdb9-b765-45a2-9a84-36baff932534.png",
+                    "sizes": "192x192",
+                    "type": "image/png",
+                    "purpose": "any maskable"
+                }, {
+                    "src": "https://www.image2url.com/r2/default/images/1778052352511-e28abdb9-b765-45a2-9a84-36baff932534.png",
+                    "sizes": "512x512",
+                    "type": "image/png",
+                    "purpose": "any maskable"
+                }]
+            };
+            const manifestBlob = new Blob([JSON.stringify(manifestJSON)], {type: 'application/json'});
+            const manifestUrl = URL.createObjectURL(manifestBlob);
+            
+            const link = document.createElement('link');
+            link.rel = 'manifest';
+            link.href = manifestUrl;
+            document.head.appendChild(link);
+
+            const swCode = "self.addEventListener('fetch', function(e) {});";
+            const swBlob = new Blob([swCode], {type: 'application/javascript'});
+            const swUrl = URL.createObjectURL(swBlob);
+            if ('serviceWorker' in navigator) {
+                window.addEventListener('load', function() {
+                    navigator.serviceWorker.register(swUrl).catch(function(err) { console.log('SW fail', err); });
+                });
+            }
+        } catch (e) {
+            console.log("PWA dinonaktifkan di mode preview.");
+        }
+    </script>
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: { sans: ['"Inter"', 'sans-serif'] },
+                    colors: { primary: '#059669', primaryLight: '#d1fae5', bgSoft: '#f8fafc' }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        body {
+            background-color: #e2e8f0; 
+            display: flex; justify-content: center; align-items: center;
+            min-height: 100vh; margin: 0;
+            -webkit-tap-highlight-color: transparent; 
+            overscroll-behavior-y: none; touch-action: pan-y; 
+            -webkit-text-size-adjust: 100%;
+        }
+        
+        #app-container {
+            width: 100%; max-width: 414px; height: 100vh; max-height: 896px;
+            background-color: #ffffff; position: relative; overflow: hidden;
+            display: flex; flex-direction: column;
+            box-shadow: 0 20px 40px -10px rgba(0, 0, 0, 0.1);
+            overscroll-behavior-y: none;
+        }
+        @media (min-width: 415px) {
+            #app-container { height: 90vh; border-radius: 2rem; border: 6px solid #0f172a; }
+        }
+        
+        .hide-scrollbar::-webkit-scrollbar { display: none; }
+        .hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+        
+        .view-section { display: none; opacity: 0; }
+        .view-section.active { display: flex; animation: fadeSlideUp 0.4s ease-out forwards; }
+        #view-ai.active { display: flex; }
+
+        @keyframes fadeSlideUp {
+            from { opacity: 0; transform: translateY(15px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        @keyframes popIn {
+            0% { opacity: 0; transform: scale(0.85); }
+            70% { transform: scale(1.02); }
+            100% { opacity: 1; transform: scale(1); }
+        }
+        
+        .pop-in { opacity: 0; }
+        .view-section.active .pop-in, #loader-overlay .pop-in, #view-login.active .pop-in { animation: popIn 0.5s cubic-bezier(0.25, 0.8, 0.25, 1) forwards; }
+
+        @keyframes float {
+            0% { transform: translateY(0px); }
+            50% { transform: translateY(-5px); }
+            100% { transform: translateY(0px); }
+        }
+        .animate-float { animation: float 3s ease-in-out infinite; }
+
+        .tut-content-anim { transition: opacity 0.3s ease, transform 0.3s ease; }
+        .tut-hide { opacity: 0; transform: translateX(-20px); }
+        .tut-show { opacity: 1; transform: translateX(0); }
+
+        .hover-scale { transition: transform 0.2s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.2s ease; }
+        .hover-scale:active { transform: scale(0.93); }
+
+        .delay-100 { animation-delay: 100ms; }
+        .delay-200 { animation-delay: 200ms; }
+        .delay-300 { animation-delay: 300ms; }
+        .delay-400 { animation-delay: 400ms; }
+        .delay-500 { animation-delay: 500ms; }
+        .delay-600 { animation-delay: 600ms; }
+
+        .typing-indicator span { display: inline-block; width: 5px; height: 5px; background-color: #94a3b8; border-radius: 50%; margin: 0 2px; animation: bounce 1.4s infinite ease-in-out both; }
+        .typing-indicator span:nth-child(1) { animation-delay: -0.32s; }
+        .typing-indicator span:nth-child(2) { animation-delay: -0.16s; }
+        @keyframes bounce { 0%, 80%, 100% { transform: scale(0); } 40% { transform: scale(1); } }
+
+        #toast-container { position: absolute; top: 20px; left: 50%; transform: translateX(-50%); z-index: 1000; width: 90%; pointer-events: none; }
+        .toast { background: rgba(30, 41, 59, 0.95); backdrop-filter: blur(5px); color: #ffffff; padding: 12px 16px; border-radius: 12px; margin-bottom: 10px; text-align: center; font-size: 0.8rem; font-weight: 500; opacity: 0; transition: opacity 0.3s, transform 0.3s cubic-bezier(0.25, 0.8, 0.25, 1); transform: translateY(-20px) scale(0.9); box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1); }
+        .toast.show { opacity: 1; transform: translateY(0) scale(1); }
+
+        .file-upload-label { display: flex; flex-direction: column; align-items: center; justify-content: center; border: 2px dashed #cbd5e1; border-radius: 0.75rem; padding: 1rem; cursor: pointer; background-color: #f8fafc; transition: all 0.2s; }
+        .file-upload-label:hover { border-color: #059669; background-color: #f0fdf4; }
+
+        input, select, textarea { font-size: 16px !important; }
+
+        #loader-overlay {
+            position: absolute; inset: 0; background: rgba(255,255,255,0.9);
+            backdrop-filter: blur(4px); z-index: 200;
+            display: flex; justify-content: center; align-items: center;
+            flex-direction: column; gap: 1rem; transition: opacity 0.4s;
+        }
+    </style>
+</head>
+<body>
+
+    <div id="app-container">
+        
+        <!-- App Loader -->
+        <div id="loader-overlay">
+            <i class="fa-solid fa-circle-notch fa-spin text-4xl text-primary"></i>
+            <p class="text-slate-600 font-medium text-sm pop-in">Menyiapkan Aplikasi...</p>
+        </div>
+
+        <!-- Toast Container -->
+        <div id="toast-container"></div>
+
+        <!-- ====== VIEW: LOGIN WARGA ====== -->
+        <div id="view-login" class="view-section absolute inset-0 z-[150] bg-gradient-to-b from-emerald-500 to-emerald-700 flex-col justify-center items-center p-6">
+            <div class="w-28 h-28 bg-white rounded-full p-1.5 shadow-2xl mb-6 pop-in overflow-hidden border-4 border-emerald-400">
+                <img src="https://www.image2url.com/r2/default/images/1778052352511-e28abdb9-b765-45a2-9a84-36baff932534.png" class="w-full h-full object-cover rounded-full" alt="Logo RT" onerror="this.onerror=null; this.src='https://bekasikota.go.id/uploads/pages/20250926134426-2025-09-26pages134424_thumb.png';">
+            </div>
+            
+            <h1 class="text-3xl font-black text-white mb-2 pop-in delay-100 text-center tracking-tight drop-shadow-md">RT 004 Digital</h1>
+            <p class="text-emerald-100 text-sm font-medium mb-10 pop-in delay-200 text-center">Portal Layanan & Informasi Warga</p>
+            
+            <form id="form-login" class="bg-white w-full max-w-sm rounded-3xl p-7 shadow-2xl pop-in delay-300 relative">
+                <div class="absolute -top-4 left-1/2 -translate-x-1/2 bg-amber-400 text-amber-900 text-[10px] font-black px-3 py-1 rounded-full uppercase tracking-widest shadow-sm">
+                    Akses Masuk
+                </div>
+                <h2 class="text-lg font-bold text-slate-800 mb-1 text-center mt-2">Selamat Datang!</h2>
+                <p class="text-[11px] text-slate-500 text-center mb-6 leading-relaxed">Silakan masukkan nama lengkap Anda untuk mulai menggunakan aplikasi.</p>
+                
+                <div class="mb-6">
+                    <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-2">Nama Lengkap Anda</label>
+                    <input type="text" id="login-name" required placeholder="Contoh: Budi Santoso" class="w-full bg-slate-50 border border-slate-200 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-200 rounded-xl px-4 py-3.5 text-sm outline-none transition-all font-bold text-slate-800">
+                </div>
+                
+                <button type="submit" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-sm rounded-xl py-3.5 shadow-lg shadow-emerald-500/40 transition-all hover-scale">
+                    Masuk ke Aplikasi
+                </button>
+            </form>
+            
+            <p class="text-[10px] text-emerald-200 mt-8 pop-in delay-400 font-medium">© 2026 Pengurus RT 004 Perum. Taman Wismaasri 2</p>
+        </div>
+
+        <!-- HEADER APLIKASI UTAMA -->
+        <header id="main-header" style="display: none;" class="bg-white px-5 pt-8 pb-3 shadow-[0_2px_10px_rgba(0,0,0,0.03)] z-10 shrink-0 border-b border-slate-100 flex justify-between items-center relative transition-all">
+            <div class="flex items-center gap-3">
+                <div class="w-10 h-10 bg-primary rounded-xl flex items-center justify-center shadow-lg shadow-emerald-500/30 overflow-hidden border border-emerald-100 bg-white">
+                    <img src="https://www.image2url.com/r2/default/images/1778052352511-e28abdb9-b765-45a2-9a84-36baff932534.png" alt="Logo Aplikasi" class="w-full h-full object-cover" onerror="this.onerror=null; this.src='https://bekasikota.go.id/uploads/pages/20250926134426-2025-09-26pages134424_thumb.png';">
+                </div>
+                <div>
+                    <h1 class="text-[16px] font-bold text-slate-800 leading-none tracking-tight">RT 004 Digital</h1>
+                    <p class="text-[10px] font-medium text-slate-500 mt-1">Perum. Taman Wismaasri 2</p>
+                </div>
+            </div>
+            <div class="flex items-center gap-2">
+                <button id="btn-install-app" class="hidden bg-emerald-50 text-emerald-600 px-3 py-1.5 rounded-full text-[10px] font-bold items-center gap-1.5 hover-scale border border-emerald-100">
+                    <i class="fa-solid fa-download"></i> Install
+                </button>
+            </div>
+        </header>
+
+        <!-- KONTEN UTAMA -->
+        <main class="flex-1 overflow-y-auto hide-scrollbar pb-24 bg-bgSoft relative">
+            
+            <!-- ====== VIEW: HALAMAN BERANDA ====== -->
+            <div id="view-dashboard" class="view-section flex-col px-5 pt-5">
+                
+                <div onclick="window.switchView('view-ai')" class="pop-in bg-gradient-to-br from-blue-600 to-indigo-700 rounded-2xl p-4 mb-4 shadow-lg shadow-blue-500/25 cursor-pointer flex items-center gap-3 active:scale-[0.98] transition-transform hover-scale">
+                    <div class="w-10 h-10 bg-white/20 rounded-full flex items-center justify-center shrink-0 shadow-inner relative backdrop-blur-md border border-white/30">
+                        <i class="fa-solid fa-user-tie text-white text-lg animate-float"></i>
+                        <i class="fa-solid fa-sparkles text-amber-300 text-[10px] absolute -top-1 -right-1 animate-pulse"></i>
+                    </div>
+                    <div class="flex-1">
+                        <h3 class="text-white font-bold text-sm tracking-wide">Pemuda Pintar</h3>
+                        <p class="text-blue-100 text-[10px] mt-0.5">Asisten Ramah Warga. Tanya di sini!</p>
+                    </div>
+                    <div class="w-6 h-6 bg-white/20 rounded-full flex items-center justify-center backdrop-blur-md">
+                        <i class="fa-solid fa-chevron-right text-white text-[10px]"></i>
+                    </div>
+                </div>
+
+                <div class="pop-in delay-100 bg-slate-800 rounded-2xl p-4 mb-6 shadow-md relative overflow-hidden flex items-center gap-3">
+                    <div class="absolute -right-4 -top-4 w-20 h-20 bg-white/10 rounded-full blur-2xl animate-pulse"></div>
+                    <div class="w-10 h-10 bg-white/10 rounded-full flex items-center justify-center shrink-0 border border-white/20">
+                        <i class="fa-solid fa-map-location-dot text-white text-lg"></i>
+                    </div>
+                    <div class="text-white z-10 relative">
+                        <h3 class="font-bold text-[11px] uppercase tracking-wide mb-0.5">RT 004 / RW 025</h3>
+                        <p class="text-[9px] text-slate-300 leading-snug">Perum Taman Wismaasri 2, Kel. Teluk Pucung, Kec. Bekasi Utara, Kota Bekasi</p>
+                    </div>
+                </div>
+
+                <div class="pop-in delay-200 bg-white rounded-2xl p-4 border border-slate-100 shadow-sm mb-6 transition-all hover:shadow-md">
+                    <h2 class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-3">Data Penduduk</h2>
+                    <div class="grid grid-cols-3 gap-3 mb-3">
+                        <div class="text-center">
+                            <h3 id="stat-total-warga" class="text-xl font-black text-slate-800">0</h3>
+                            <p class="text-[10px] text-slate-500 font-medium mt-1">Total Warga</p>
+                        </div>
+                        <div class="text-center border-x border-slate-100">
+                            <h3 id="stat-total-rumah" class="text-xl font-black text-slate-800">0</h3>
+                            <p class="text-[10px] text-slate-500 font-medium mt-1">Rumah</p>
+                        </div>
+                        <div class="text-center">
+                            <h3 id="stat-total-kk" class="text-xl font-black text-slate-800">0</h3>
+                            <p class="text-[10px] text-slate-500 font-medium mt-1">Kartu Kel.</p>
+                        </div>
+                    </div>
+                    <div class="flex bg-slate-50 rounded-lg p-2 gap-2 text-center text-xs">
+                        <div class="flex-1 flex items-center justify-center gap-1.5 text-blue-600 font-bold border-r border-slate-200">
+                            <i class="fa-solid fa-mars"></i> <span id="stat-laki">0</span> Laki-laki
+                        </div>
+                        <div class="flex-1 flex items-center justify-center gap-1.5 text-pink-600 font-bold">
+                            <i class="fa-solid fa-venus"></i> <span id="stat-perempuan">0</span> Perempuan
+                        </div>
+                    </div>
+                </div>
+
+                <div class="flex justify-between items-center mb-3">
+                    <h2 class="text-sm font-bold text-slate-800">Layanan Digital</h2>
+                    <button onclick="window.switchView('view-tutorial')" class="text-[10px] font-bold text-amber-600 bg-amber-50 border border-amber-100 px-3 py-1.5 rounded-full flex items-center gap-1.5 hover-scale shadow-sm">
+                        <i class="fa-solid fa-lightbulb text-amber-400"></i> Panduan
+                    </button>
+                </div>
+                
+                <div class="grid grid-cols-3 gap-3.5 mb-8">
+                    <button onclick="window.switchView('view-surat')" class="pop-in delay-100 flex flex-col items-center gap-2 bg-white p-3.5 rounded-2xl border border-slate-100 shadow-sm hover-scale cursor-pointer hover:shadow-md">
+                        <div class="w-11 h-11 bg-emerald-50 rounded-full flex items-center justify-center text-primary">
+                            <i class="fa-solid fa-file-signature text-xl"></i>
+                        </div>
+                        <span class="text-[10px] font-bold text-slate-600 text-center leading-tight">Buat<br>Surat</span>
+                    </button>
+                    <button onclick="window.switchView('view-alur')" class="pop-in delay-100 flex flex-col items-center gap-2 bg-white p-3.5 rounded-2xl border border-slate-100 shadow-sm hover-scale cursor-pointer hover:shadow-md">
+                        <div class="w-11 h-11 bg-blue-50 rounded-full flex items-center justify-center text-blue-600">
+                            <i class="fa-solid fa-circle-info text-xl"></i>
+                        </div>
+                        <span class="text-[10px] font-bold text-slate-600 text-center leading-tight">Info<br>Layanan</span>
+                    </button>
+                    <button onclick="window.switchView('view-pengaduan')" class="pop-in delay-200 flex flex-col items-center gap-2 bg-white p-3.5 rounded-2xl border border-slate-100 shadow-sm hover-scale cursor-pointer hover:shadow-md">
+                        <div class="w-11 h-11 bg-orange-50 rounded-full flex items-center justify-center text-orange-500">
+                            <i class="fa-solid fa-bullhorn text-xl"></i>
+                        </div>
+                        <span class="text-[10px] font-bold text-slate-600 text-center leading-tight">Lapor<br>Warga</span>
+                    </button>
+                    <button onclick="window.switchView('view-agenda')" class="pop-in delay-200 flex flex-col items-center gap-2 bg-white p-3.5 rounded-2xl border border-slate-100 shadow-sm hover-scale cursor-pointer hover:shadow-md">
+                        <div class="w-11 h-11 bg-purple-50 rounded-full flex items-center justify-center text-purple-600">
+                            <i class="fa-regular fa-calendar-check text-xl"></i>
+                        </div>
+                        <span class="text-[10px] font-bold text-slate-600 text-center leading-tight">Agenda<br>Kegiatan</span>
+                    </button>
+                    <button onclick="window.switchView('view-pengurus')" class="pop-in delay-300 flex flex-col items-center gap-2 bg-white p-3.5 rounded-2xl border border-slate-100 shadow-sm hover-scale cursor-pointer hover:shadow-md">
+                        <div class="w-11 h-11 bg-indigo-50 rounded-full flex items-center justify-center text-indigo-500">
+                            <i class="fa-solid fa-sitemap text-xl"></i>
+                        </div>
+                        <span class="text-[10px] font-bold text-slate-600 text-center leading-tight">Pengurus<br>RT</span>
+                    </button>
+                    <button onclick="window.switchView('view-galeri')" class="pop-in delay-300 flex flex-col items-center gap-2 bg-white p-3.5 rounded-2xl border border-slate-100 shadow-sm hover-scale cursor-pointer hover:shadow-md">
+                        <div class="w-11 h-11 bg-rose-50 rounded-full flex items-center justify-center text-rose-500">
+                            <i class="fa-solid fa-images text-xl"></i>
+                        </div>
+                        <span class="text-[10px] font-bold text-slate-600 text-center leading-tight">Galeri<br>Foto</span>
+                    </button>
+                    <!-- Tombol Cek Layanan Publik -->
+                    <button onclick="window.switchView('view-layanan-publik')" class="pop-in delay-400 col-span-3 flex flex-row items-center gap-4 bg-gradient-to-r from-teal-50 to-cyan-50 p-4 rounded-2xl border border-teal-100 shadow-sm hover-scale cursor-pointer hover:shadow-md">
+                        <div class="w-12 h-12 bg-gradient-to-br from-teal-400 to-cyan-500 rounded-full flex items-center justify-center text-white shrink-0 shadow-md">
+                            <i class="fa-solid fa-magnifying-glass-dollar text-xl animate-float"></i>
+                        </div>
+                        <div class="flex-1 text-left">
+                            <h3 class="font-bold text-teal-900 text-[13px]">Cek Layanan Publik Pemerintah</h3>
+                            <p class="text-[10px] font-medium text-teal-700 mt-0.5">Cek Tagihan PBB, Kendaraan, PLN, PDAM, dll</p>
+                        </div>
+                        <div class="w-8 h-8 bg-white rounded-full flex items-center justify-center shadow-sm">
+                            <i class="fa-solid fa-chevron-right text-teal-500 text-xs"></i>
+                        </div>
+                    </button>
+                </div>
+
+                <div class="flex justify-between items-center mb-4">
+                    <h2 class="text-sm font-bold text-slate-800">Kabar Lingkungan</h2>
+                    <button onclick="window.switchView('view-info')" class="text-[10px] font-bold text-primary bg-emerald-50 px-2.5 py-1 rounded-full">Lihat Semua</button>
+                </div>
+                
+                <div class="space-y-3 pb-5" id="dashboard-info-list"></div>
+            </div>
+
+            <!-- ====== VIEW: PANDUAN APLIKASI (TUTORIAL) ====== -->
+            <div id="view-tutorial" class="view-section flex-col px-5 pt-6 pb-10">
+                <button onclick="window.switchView('view-dashboard')" class="text-slate-500 mb-5 flex items-center gap-2 text-xs font-medium hover-scale">
+                    <i class="fa-solid fa-arrow-left"></i> Kembali
+                </button>
+                
+                <div class="mb-6 pop-in">
+                    <h2 class="text-2xl font-black text-slate-800 tracking-tight">Panduan Aplikasi</h2>
+                    <p class="text-xs font-medium text-slate-500 mt-2 leading-relaxed">Pelajari kegunaan dari setiap fitur agar urusan Anda lebih mudah dan cepat.</p>
+                </div>
+
+                <div class="space-y-4">
+                    <div class="bg-white p-4 rounded-2xl shadow-sm border border-slate-100 flex gap-4 pop-in delay-100 hover:shadow-md transition-shadow">
+                        <div class="w-12 h-12 bg-blue-50 text-blue-600 rounded-xl flex items-center justify-center text-xl shrink-0"><i class="fa-solid fa-user-tie"></i></div>
+                        <div>
+                            <h3 class="font-bold text-sm text-slate-800 mb-1">AI Pemuda Pintar</h3>
+                            <p class="text-[11px] text-slate-600 leading-relaxed font-medium">Asisten virtual pintar milik warga. Anda bisa mengajaknya mengobrol, bertanya syarat membuat dokumen, atau mencari tahu agenda RT secara cepat. Cukup ketik pertanyaan Anda!</p>
+                        </div>
+                    </div>
+                    <div class="bg-white p-4 rounded-2xl shadow-sm border border-slate-100 flex gap-4 pop-in delay-100 hover:shadow-md transition-shadow">
+                        <div class="w-12 h-12 bg-emerald-50 text-emerald-600 rounded-xl flex items-center justify-center text-xl shrink-0"><i class="fa-solid fa-file-signature"></i></div>
+                        <div>
+                            <h3 class="font-bold text-sm text-slate-800 mb-1">Buat Surat Pengantar</h3>
+                            <p class="text-[11px] text-slate-600 leading-relaxed font-medium">Membuat Surat Pengantar RT tidak pernah semudah ini. Isi formulir dengan lengkap, lalu tekan tombol kirim. Aplikasi akan otomatis membuatkan file PDF dan membukakan WhatsApp Pengurus untuk Anda kirimkan.</p>
+                        </div>
+                    </div>
+                    <div class="bg-white p-4 rounded-2xl shadow-sm border border-slate-100 flex gap-4 pop-in delay-200 hover:shadow-md transition-shadow">
+                        <div class="w-12 h-12 bg-teal-50 text-teal-600 rounded-xl flex items-center justify-center text-xl shrink-0"><i class="fa-solid fa-magnifying-glass-dollar"></i></div>
+                        <div>
+                            <h3 class="font-bold text-sm text-slate-800 mb-1">Cek Layanan Publik</h3>
+                            <p class="text-[11px] text-slate-600 leading-relaxed font-medium">Pintasan praktis untuk mengecek tagihan PBB, Pajak Kendaraan, PLN, PDAM, atau status Bansos. Masukkan nomor Anda di sini, sistem akan menyalin data dan menuntun Anda ke website resmi Pemerintah.</p>
+                        </div>
+                    </div>
+                    <div class="bg-white p-4 rounded-2xl shadow-sm border border-slate-100 flex gap-4 pop-in delay-200 hover:shadow-md transition-shadow">
+                        <div class="w-12 h-12 bg-orange-50 text-orange-500 rounded-xl flex items-center justify-center text-xl shrink-0"><i class="fa-solid fa-bullhorn"></i></div>
+                        <div>
+                            <h3 class="font-bold text-sm text-slate-800 mb-1">Lapor Warga</h3>
+                            <p class="text-[11px] text-slate-600 leading-relaxed font-medium">Temukan lampu jalan mati? Ada tumpukan sampah? Gunakan menu ini untuk melaporkan kondisi lingkungan. Laporan akan diformat rapi dan langsung diteruskan ke WhatsApp Pengurus.</p>
+                        </div>
+                    </div>
+                    <div class="bg-white p-4 rounded-2xl shadow-sm border border-slate-100 flex gap-4 pop-in delay-300 hover:shadow-md transition-shadow">
+                        <div class="w-12 h-12 bg-slate-800 text-white rounded-xl flex items-center justify-center text-xl shrink-0"><i class="fa-solid fa-gear"></i></div>
+                        <div>
+                            <h3 class="font-bold text-sm text-slate-800 mb-1">Panel Admin (Pengelola)</h3>
+                            <p class="text-[11px] text-slate-600 leading-relaxed font-medium">Menu rahasia ini hanya bisa diakses oleh Pengurus RT menggunakan PIN. Berfungsi untuk memperbarui jumlah warga, menambah jadwal agenda, menulis berita, dan mengatur seluruh informasi aplikasi.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ====== VIEW: CEK LAYANAN PUBLIK ====== -->
+            <div id="view-layanan-publik" class="view-section flex-col px-5 pt-6 pb-10">
+                <button onclick="window.switchView('view-dashboard')" class="text-slate-500 mb-5 flex items-center gap-2 text-xs font-medium hover-scale">
+                    <i class="fa-solid fa-arrow-left"></i> Kembali
+                </button>
+                
+                <div class="mb-6 pop-in">
+                    <h2 class="text-2xl font-black text-slate-800 tracking-tight">Cek Layanan Publik</h2>
+                    <p class="text-xs font-medium text-slate-500 mt-2 leading-relaxed">Pilih layanan yang ingin Anda cek. Kami akan memandu Anda menuju website resmi pemerintah.</p>
+                </div>
+
+                <div class="grid grid-cols-2 gap-4">
+                    <button onclick="window.openLayananModal('pbb')" class="pop-in delay-100 bg-white p-5 rounded-2xl shadow-sm border border-slate-100 flex flex-col items-center text-center gap-3 hover-scale hover:shadow-md">
+                        <div class="w-14 h-14 bg-blue-50 text-blue-600 rounded-full flex items-center justify-center text-2xl"><i class="fa-solid fa-house-chimney"></i></div>
+                        <span class="font-bold text-[13px] text-slate-800">Cek PBB</span>
+                    </button>
+                    <button onclick="window.openLayananModal('kendaraan')" class="pop-in delay-100 bg-white p-5 rounded-2xl shadow-sm border border-slate-100 flex flex-col items-center text-center gap-3 hover-scale hover:shadow-md">
+                        <div class="w-14 h-14 bg-emerald-50 text-emerald-600 rounded-full flex items-center justify-center text-2xl"><i class="fa-solid fa-car-side"></i></div>
+                        <span class="font-bold text-[13px] text-slate-800">Cek Kendaraan</span>
+                    </button>
+                    <button onclick="window.openLayananModal('listrik')" class="pop-in delay-200 bg-white p-5 rounded-2xl shadow-sm border border-slate-100 flex flex-col items-center text-center gap-3 hover-scale hover:shadow-md">
+                        <div class="w-14 h-14 bg-amber-50 text-amber-500 rounded-full flex items-center justify-center text-2xl"><i class="fa-solid fa-bolt"></i></div>
+                        <span class="font-bold text-[13px] text-slate-800">Cek Listrik</span>
+                    </button>
+                    <button onclick="window.openLayananModal('air')" class="pop-in delay-200 bg-white p-5 rounded-2xl shadow-sm border border-slate-100 flex flex-col items-center text-center gap-3 hover-scale hover:shadow-md">
+                        <div class="w-14 h-14 bg-cyan-50 text-cyan-500 rounded-full flex items-center justify-center text-2xl"><i class="fa-solid fa-faucet-drip"></i></div>
+                        <span class="font-bold text-[13px] text-slate-800">Cek Air PDAM</span>
+                    </button>
+                    <button onclick="window.openLayananModal('bpjs')" class="pop-in delay-300 bg-white p-5 rounded-2xl shadow-sm border border-slate-100 flex flex-col items-center text-center gap-3 hover-scale hover:shadow-md">
+                        <div class="w-14 h-14 bg-green-50 text-green-600 rounded-full flex items-center justify-center text-2xl"><i class="fa-solid fa-heart-pulse"></i></div>
+                        <span class="font-bold text-[13px] text-slate-800">Cek BPJS</span>
+                    </button>
+                    <button onclick="window.openLayananModal('bansos')" class="pop-in delay-300 bg-white p-5 rounded-2xl shadow-sm border border-slate-100 flex flex-col items-center text-center gap-3 hover-scale hover:shadow-md">
+                        <div class="w-14 h-14 bg-orange-50 text-orange-500 rounded-full flex items-center justify-center text-2xl"><i class="fa-solid fa-hand-holding-dollar"></i></div>
+                        <span class="font-bold text-[13px] text-slate-800">Cek Bansos</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- ====== VIEW: SURAT PENGANTAR ====== -->
+            <div id="view-surat" class="view-section flex-col px-5 pt-6 pb-10">
+                <button onclick="window.switchView('view-dashboard')" class="text-slate-500 mb-4 flex items-center gap-2 text-xs font-medium hover-scale">
+                    <i class="fa-solid fa-arrow-left"></i> Kembali
+                </button>
+                
+                <div class="mb-5 pop-in">
+                    <h2 class="text-xl font-bold text-slate-800">Cetak Surat Pengantar</h2>
+                    <p class="text-xs text-slate-500 mt-1">Isi form berikut, file PDF otomatis terunduh & dikirim ke WA.</p>
+                </div>
+
+                <form id="form-pdf-surat" class="bg-white p-5 rounded-2xl border border-slate-100 shadow-sm space-y-4 pop-in delay-100">
+                    <div>
+                        <label class="block text-[10px] font-bold text-slate-400 uppercase mb-1">1. Nama Lengkap</label>
+                        <input type="text" id="pdf-nama" required class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2.5 outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-colors">
+                    </div>
+                    
+                    <div class="grid grid-cols-2 gap-3">
+                        <div>
+                            <label class="block text-[10px] font-bold text-slate-400 uppercase mb-1">2. Tempat Lahir</label>
+                            <input type="text" id="pdf-tempat" required class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2.5 outline-none focus:border-primary transition-colors">
+                        </div>
+                        <div>
+                            <label class="block text-[10px] font-bold text-slate-400 uppercase mb-1">3. Tanggal Lahir</label>
+                            <input type="date" id="pdf-tgl" required class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2.5 outline-none focus:border-primary transition-colors">
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-2 gap-3">
+                        <div>
+                            <label class="block text-[10px] font-bold text-slate-400 uppercase mb-1">4. Jenis Kelamin</label>
+                            <select id="pdf-jk" required class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2.5 outline-none focus:border-primary transition-colors">
+                                <option value="Laki-laki">Laki-laki</option>
+                                <option value="Perempuan">Perempuan</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-[10px] font-bold text-slate-400 uppercase mb-1">5. Agama</label>
+                            <select id="pdf-agama" required class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2.5 outline-none focus:border-primary transition-colors">
+                                <option value="Islam">Islam</option>
+                                <option value="Kristen Protestan">Protestan</option>
+                                <option value="Katolik">Katolik</option>
+                                <option value="Hindu">Hindu</option>
+                                <option value="Buddha">Buddha</option>
+                                <option value="Konghucu">Konghucu</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-2 gap-3">
+                        <div>
+                            <label class="block text-[10px] font-bold text-slate-400 uppercase mb-1">6. Pekerjaan</label>
+                            <input type="text" id="pdf-pekerjaan" required class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2.5 outline-none focus:border-primary transition-colors">
+                        </div>
+                        <div>
+                            <label class="block text-[10px] font-bold text-slate-400 uppercase mb-1">7. NIK KTP</label>
+                            <input type="number" id="pdf-nik" required class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2.5 outline-none focus:border-primary transition-colors">
+                        </div>
+                    </div>
+
+                    <div>
+                        <label class="block text-[10px] font-bold text-slate-400 uppercase mb-1">8. Alamat Lengkap</label>
+                        <textarea id="pdf-alamat" required rows="2" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2.5 outline-none focus:border-primary transition-colors"></textarea>
+                    </div>
+
+                    <div>
+                        <label class="block text-[10px] font-bold text-slate-400 uppercase mb-1">9. Keperluan</label>
+                        <textarea id="pdf-keperluan" required rows="2" placeholder="Cth: Mengurus SKCK, Surat Nikah, dll" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2.5 outline-none focus:border-primary transition-colors"></textarea>
+                    </div>
+
+                    <button type="submit" id="btn-generate-pdf" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-xl py-3.5 flex justify-center items-center gap-2 transition-colors text-sm shadow-md mt-4 hover-scale">
+                        <i class="fa-brands fa-whatsapp text-lg"></i> Download, Arsip & Kirim WA
+                    </button>
+                </form>
+            </div>
+
+            <!-- ====== VIEW: DAFTAR SYARAT LAYANAN UMUM ====== -->
+            <div id="view-alur" class="view-section flex-col px-5 pt-6">
+                <button onclick="window.switchView('view-dashboard')" class="text-slate-500 mb-5 flex items-center gap-2 text-xs font-medium hover-scale">
+                    <i class="fa-solid fa-arrow-left"></i> Kembali
+                </button>
+                <h2 class="text-xl font-bold text-slate-800 mb-1 pop-in">Informasi Layanan</h2>
+                <p class="text-slate-500 text-xs mb-4 pop-in">Cari tahu syarat dokumen administrasi umum di sini.</p>
+
+                <div class="relative mb-6 pop-in delay-100">
+                    <i class="fa-solid fa-magnifying-glass absolute left-4 top-1/2 -translate-y-1/2 text-slate-400"></i>
+                    <input type="text" id="search-layanan" oninput="window.filterLayanan(this.value)" placeholder="Cari (misal: KTP, Makam)..." class="w-full bg-white border border-slate-200 focus:border-primary focus:ring-1 focus:ring-primary rounded-xl pl-10 pr-4 py-3 outline-none transition-all shadow-sm">
+                </div>
+
+                <div class="space-y-4 pb-10 pop-in delay-200" id="layanan-list"></div>
+            </div>
+
+            <!-- ====== VIEW: PENGADUAN WARGA ====== -->
+            <div id="view-pengaduan" class="view-section flex-col px-5 pt-6">
+                <button onclick="window.switchView('view-dashboard')" class="text-slate-500 mb-5 flex items-center gap-2 text-xs font-medium hover-scale">
+                    <i class="fa-solid fa-arrow-left"></i> Kembali
+                </button>
+                <h2 class="text-xl font-bold text-slate-800 mb-1 pop-in">Lapor Warga</h2>
+                <p class="text-slate-500 text-xs mb-6 pop-in">Sampaikan laporan lingkungan Anda. Laporan akan dikirim ke WhatsApp Pengurus.</p>
+                <form id="form-pengaduan" class="bg-white p-5 rounded-2xl shadow-sm border border-slate-100 space-y-4 pop-in delay-100">
+                    <div>
+                        <label class="block text-[11px] font-bold text-slate-500 mb-1.5 uppercase tracking-wide">Kategori Laporan</label>
+                        <select required class="w-full bg-slate-50 border border-slate-200 text-slate-800 rounded-xl px-4 py-3 outline-none focus:border-primary transition-colors">
+                            <option value="">Pilih Kategori...</option>
+                            <option value="Keamanan">Keamanan & Ketertiban</option>
+                            <option value="Fasilitas">Kerusakan Fasilitas Umum</option>
+                            <option value="Kebersihan">Masalah Kebersihan/Sampah</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-[11px] font-bold text-slate-500 mb-1.5 uppercase tracking-wide">Detail Laporan</label>
+                        <textarea required rows="4" placeholder="Tuliskan deskripsi lengkap dan lokasi kejadian..." class="w-full bg-slate-50 border border-slate-200 text-slate-800 rounded-xl px-4 py-3 outline-none focus:border-primary transition-colors"></textarea>
+                    </div>
+                    <button type="submit" class="w-full bg-green-500 hover:bg-green-600 text-white font-bold rounded-xl py-3.5 transition-colors text-sm mt-2 hover-scale flex items-center justify-center gap-2 shadow-md shadow-green-500/30">
+                        <i class="fa-brands fa-whatsapp text-lg"></i> Kirim Laporan ke WA
+                    </button>
+                </form>
+            </div>
+
+            <!-- ====== VIEW: AGENDA ====== -->
+            <div id="view-agenda" class="view-section flex-col px-5 pt-6">
+                <button onclick="window.switchView('view-dashboard')" class="text-slate-500 mb-5 flex items-center gap-2 text-xs font-medium hover-scale"><i class="fa-solid fa-arrow-left"></i> Kembali</button>
+                <h2 class="text-xl font-bold text-slate-800 mb-5 pop-in">Agenda Lingkungan</h2>
+                <div class="space-y-3" id="agenda-list"></div>
+            </div>
+
+            <!-- ====== VIEW: KABAR LINGKUNGAN (DAFTAR ARTIKEL) ====== -->
+            <div id="view-info" class="view-section flex-col px-5 pt-6">
+                <button onclick="window.switchView('view-dashboard')" class="text-slate-500 mb-5 flex items-center gap-2 text-xs font-medium hover-scale"><i class="fa-solid fa-arrow-left"></i> Kembali</button>
+                <h2 class="text-xl font-bold text-slate-800 mb-5 pop-in">Kabar Lingkungan</h2>
+                <div class="space-y-4" id="full-info-list"></div>
+            </div>
+            
+            <!-- ====== VIEW: KABAR DETAIL (ARTIKEL PENUH) ====== -->
+            <div id="view-kabar-detail" class="view-section flex-col px-5 pt-6 pb-10 absolute inset-0 bg-white z-[55] overflow-y-auto hide-scrollbar">
+                <button onclick="window.switchView('view-info')" class="text-slate-500 mb-5 flex items-center gap-2 text-xs font-medium hover-scale">
+                    <i class="fa-solid fa-arrow-left"></i> Kembali ke Daftar Kabar
+                </button>
+                <div id="kabar-detail-content" class="pop-in">
+                    <!-- Artikel akan dirender menggunakan JavaScript -->
+                </div>
+            </div>
+
+            <!-- ====== VIEW: PENGURUS RT ====== -->
+            <div id="view-pengurus" class="view-section flex-col px-5 pt-6">
+                <button onclick="window.switchView('view-dashboard')" class="text-slate-500 mb-5 flex items-center gap-2 text-xs font-medium hover-scale"><i class="fa-solid fa-arrow-left"></i> Kembali</button>
+                <h2 class="text-xl font-bold text-slate-800 mb-1 pop-in">Pengurus RT 004</h2>
+                <p class="text-slate-500 text-xs mb-6 pop-in">Masa Bakti 2024 - 2027</p>
+                <div class="grid grid-cols-2 gap-3" id="pengurus-list"></div>
+            </div>
+
+            <!-- ====== VIEW: GALERI FOTO ====== -->
+            <div id="view-galeri" class="view-section flex-col px-5 pt-6">
+                <button onclick="window.switchView('view-dashboard')" class="text-slate-500 mb-5 flex items-center gap-2 text-xs font-medium hover-scale"><i class="fa-solid fa-arrow-left"></i> Kembali</button>
+                <h2 class="text-xl font-bold text-slate-800 mb-1 pop-in">Galeri Foto</h2>
+                <p class="text-slate-500 text-xs mb-6 pop-in">Dokumentasi kegiatan warga RT 004.</p>
+                <div class="grid grid-cols-2 gap-3" id="galeri-list"></div>
+            </div>
+
+            <!-- ====== VIEW: PANEL ADMIN UTAMA ====== -->
+            <div id="view-admin" class="view-section flex-col px-5 pt-5 pb-20">
+                <div class="flex justify-between items-center mb-6">
+                    <button onclick="window.switchView('view-dashboard', document.querySelectorAll('.nav-item')[0])" class="text-slate-500 flex items-center gap-2 text-xs font-medium hover-scale"><i class="fa-solid fa-arrow-left"></i> Tutup Admin</button>
+                    <span class="bg-red-50 border border-red-100 text-red-600 text-[9px] px-2 py-1 rounded font-bold uppercase tracking-widest animate-pulse">Admin Mode</span>
+                </div>
+                <h2 class="text-xl font-black text-slate-800 mb-5 pop-in">Panel Pengelola</h2>
+                
+                <!-- Menu Kategori Admin -->
+                <div id="admin-home" class="pop-in delay-100">
+                    <p class="text-slate-500 text-xs mb-5 font-medium">Pilih kategori data yang ingin Anda kelola di Database Cloud.</p>
+                    <div class="grid grid-cols-2 gap-3">
+                        <button onclick="window.openAdminCategory('stats')" class="bg-white p-4 rounded-xl border border-slate-100 shadow-sm flex flex-col items-center gap-2 hover-scale text-center hover:shadow-md transition-shadow">
+                            <i class="fa-solid fa-chart-pie text-2xl text-blue-500"></i><span class="text-xs font-bold text-slate-700">Statistik</span>
+                        </button>
+                        <button onclick="window.openAdminCategory('info')" class="bg-white p-4 rounded-xl border border-slate-100 shadow-sm flex flex-col items-center gap-2 hover-scale text-center hover:shadow-md transition-shadow">
+                            <i class="fa-solid fa-newspaper text-2xl text-emerald-500"></i><span class="text-xs font-bold text-slate-700">Kabar Lingkungan</span>
+                        </button>
+                        <button onclick="window.openAdminCategory('layanan')" class="bg-white p-4 rounded-xl border border-slate-100 shadow-sm flex flex-col items-center gap-2 hover-scale text-center hover:shadow-md transition-shadow">
+                            <i class="fa-solid fa-circle-info text-2xl text-cyan-500"></i><span class="text-xs font-bold text-slate-700">Layanan</span>
+                        </button>
+                        <button onclick="window.openAdminCategory('agenda')" class="bg-white p-4 rounded-xl border border-slate-100 shadow-sm flex flex-col items-center gap-2 hover-scale text-center hover:shadow-md transition-shadow">
+                            <i class="fa-regular fa-calendar-check text-2xl text-purple-500"></i><span class="text-xs font-bold text-slate-700">Agenda</span>
+                        </button>
+                        <button onclick="window.openAdminCategory('pengurus')" class="bg-white p-4 rounded-xl border border-slate-100 shadow-sm flex flex-col items-center gap-2 hover-scale text-center hover:shadow-md transition-shadow">
+                            <i class="fa-solid fa-sitemap text-2xl text-indigo-500"></i><span class="text-xs font-bold text-slate-700">Pengurus RT</span>
+                        </button>
+                        <button onclick="window.openAdminCategory('galeri')" class="bg-white p-4 rounded-xl border border-slate-100 shadow-sm flex flex-col items-center gap-2 hover-scale text-center hover:shadow-md transition-shadow">
+                            <i class="fa-solid fa-images text-2xl text-rose-500"></i><span class="text-xs font-bold text-slate-700">Galeri Foto</span>
+                        </button>
+                        <button onclick="window.openAdminCategory('settings')" class="bg-slate-800 p-4 rounded-xl border border-slate-700 shadow-sm flex flex-col items-center gap-2 hover-scale text-center col-span-2">
+                            <i class="fa-solid fa-key text-2xl text-white"></i><span class="text-xs font-bold text-white">Ubah PIN Keamanan Admin</span>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Admin List Data (Daftar Item yang akan diubah/dihapus) -->
+                <div id="admin-list" class="hidden pop-in">
+                    <div class="flex items-center gap-3 mb-5">
+                        <button onclick="window.closeAdminCategory()" class="w-8 h-8 bg-slate-100 rounded-full flex items-center justify-center text-slate-600 hover-scale"><i class="fa-solid fa-arrow-left"></i></button>
+                        <h2 id="admin-cat-title" class="text-lg font-bold text-slate-800">Kategori</h2>
+                    </div>
+                    <button onclick="window.openAdminForm(null)" class="w-full bg-slate-800 text-white font-bold rounded-xl py-3.5 text-sm mb-4 hover-scale shadow-lg shadow-slate-800/20">+ Tambah Data Baru</button>
+                    <div id="admin-item-container" class="space-y-3"></div>
+                </div>
+
+                <!-- Admin Forms (Formulir Pengisian Data) -->
+                <div id="admin-form" class="hidden pop-in">
+                    <div class="flex items-center gap-3 mb-5">
+                        <button onclick="window.closeAdminForm()" class="w-8 h-8 bg-slate-100 rounded-full flex items-center justify-center text-slate-600 hover-scale"><i class="fa-solid fa-arrow-left"></i></button>
+                        <h2 id="admin-form-title" class="text-lg font-bold text-slate-800">Form</h2>
+                    </div>
+
+                    <form id="form-stats" class="admin-form-el space-y-3 hidden" onsubmit="window.saveAdminData(event)">
+                        <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-100">
+                            <div class="grid grid-cols-3 gap-2 mb-3">
+                                <div><label class="text-[9px] font-bold text-slate-400 uppercase">Warga</label><input type="number" id="input-stat-warga" required class="w-full bg-slate-50 border border-slate-200 rounded-lg px-2 py-2 text-xs"></div>
+                                <div><label class="text-[9px] font-bold text-slate-400 uppercase">Rumah</label><input type="number" id="input-stat-rumah" required class="w-full bg-slate-50 border border-slate-200 rounded-lg px-2 py-2 text-xs"></div>
+                                <div><label class="text-[9px] font-bold text-slate-400 uppercase">KK</label><input type="number" id="input-stat-kk" required class="w-full bg-slate-50 border border-slate-200 rounded-lg px-2 py-2 text-xs"></div>
+                            </div>
+                            <div class="grid grid-cols-2 gap-2 mb-4">
+                                <div><label class="text-[9px] font-bold text-slate-400 uppercase">Laki-laki</label><input type="number" id="input-stat-laki" required class="w-full bg-slate-50 border border-slate-200 rounded-lg px-2 py-2 text-xs"></div>
+                                <div><label class="text-[9px] font-bold text-slate-400 uppercase">Perempuan</label><input type="number" id="input-stat-perempuan" required class="w-full bg-slate-50 border border-slate-200 rounded-lg px-2 py-2 text-xs"></div>
+                            </div>
+                            <button type="submit" class="w-full bg-blue-600 text-white font-bold rounded-xl py-3 text-sm hover-scale shadow-md shadow-blue-500/20">Simpan ke Cloud</button>
+                        </div>
+                    </form>
+
+                    <form id="form-info" class="admin-form-el space-y-3 hidden" onsubmit="window.saveAdminData(event)">
+                        <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-100">
+                            <input type="text" id="admin-info-title" required placeholder="Judul Kabar" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-3 mb-3 outline-none focus:border-emerald-500 transition-colors">
+                            <textarea id="admin-info-desc" required placeholder="Isi artikel/berita selengkapnya..." rows="6" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-3 mb-3 outline-none focus:border-emerald-500 transition-colors leading-relaxed"></textarea>
+                            <label class="file-upload-label hover-scale mb-4">
+                                <i class="fa-solid fa-image text-slate-400 text-2xl mb-2"></i>
+                                <span class="text-[10px] text-slate-500 font-medium" id="info-file-name">Pilih Foto (Kosongkan bila tidak diubah)</span>
+                                <input type="file" id="admin-info-file" accept="image/*" class="hidden" onchange="document.getElementById('info-file-name').innerText = this.files[0].name">
+                            </label>
+                            <button type="submit" class="w-full bg-emerald-600 text-white font-bold rounded-xl py-3 text-sm hover-scale shadow-md shadow-emerald-500/20">Simpan ke Cloud</button>
+                        </div>
+                    </form>
+
+                    <form id="form-layanan" class="admin-form-el space-y-3 hidden" onsubmit="window.saveAdminData(event)">
+                        <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-100">
+                            <input type="text" id="admin-layanan-title" required placeholder="Nama Layanan (Cth: Buat SKCK)" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-3 mb-3 outline-none">
+                            <select id="admin-layanan-icon" required class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-3 mb-3 outline-none text-sm">
+                                <option value="fa-file-shield text-blue-500">Ikon Tameng Dokumen (Biru)</option>
+                                <option value="fa-map-location-dot text-emerald-500">Ikon Peta/Tanah (Hijau)</option>
+                                <option value="fa-briefcase text-amber-500">Ikon Koper/Pekerjaan (Oranye)</option>
+                                <option value="fa-house-user text-cyan-500">Ikon Rumah/Domisili (Cyan)</option>
+                                <option value="fa-user-slash text-rose-500">Ikon Silang Orang (Merah)</option>
+                                <option value="fa-hand-holding-dollar text-orange-500">Ikon Tangan Dana (Oranye)</option>
+                                <option value="fa-id-card-clip text-purple-500">Ikon ID Card (Ungu)</option>
+                                <option value="fa-book-skull text-slate-500">Ikon Buku Kematian (Abu-abu)</option>
+                                <option value="fa-truck-plane text-teal-500">Ikon Truk/Pindah Keluar (Teal)</option>
+                                <option value="fa-truck-arrow-right text-emerald-400">Ikon Truk/Pindah Masuk (Hijau Muda)</option>
+                                <option value="fa-id-card text-red-500">Ikon KTP (Merah)</option>
+                                <option value="fa-people-line text-indigo-500">Ikon Ahli Waris (Indigo)</option>
+                                <option value="fa-ring text-pink-500">Ikon Cincin/Nikah (Pink)</option>
+                                <option value="fa-monument text-slate-600">Ikon Batu Nisan (Abu-abu Tua)</option>
+                                <option value="fa-clock-rotate-left text-blue-400">Ikon Waktu/Perpanjang (Biru Muda)</option>
+                                <option value="fa-money-check-dollar text-emerald-600">Ikon Cek/PBB (Hijau Tua)</option>
+                                <option value="fa-file-invoice-dollar text-amber-600">Ikon Dokumen/Keringanan (Kuning)</option>
+                                <option value="fa-users-rectangle text-cyan-600">Ikon Surat Ahli Waris (Cyan Tua)</option>
+                            </select>
+                            <textarea id="admin-layanan-reqs" required placeholder="Syarat-syarat (Pisahkan dengan Enter per baris)" rows="4" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-3 mb-4 outline-none text-sm leading-relaxed"></textarea>
+                            <button type="submit" class="w-full bg-cyan-600 text-white font-bold rounded-xl py-3 text-sm hover-scale shadow-md shadow-cyan-500/20">Simpan ke Cloud</button>
+                        </div>
+                    </form>
+
+                    <form id="form-agenda" class="admin-form-el space-y-3 hidden" onsubmit="window.saveAdminData(event)">
+                        <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-100">
+                            <input type="text" id="admin-agenda-title" required placeholder="Nama Kegiatan" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-3 mb-3 outline-none">
+                            <div class="grid grid-cols-2 gap-3 mb-3">
+                                <input type="text" id="admin-agenda-date" required placeholder="Tgl (Cth: 15 Juni)" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-3 outline-none">
+                                <input type="text" id="admin-agenda-time" required placeholder="Jam (Cth: 08:00 WIB)" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-3 outline-none">
+                            </div>
+                            <input type="text" id="admin-agenda-loc" required placeholder="Lokasi Kegiatan" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-3 mb-4 outline-none">
+                            <button type="submit" class="w-full bg-purple-600 text-white font-bold rounded-xl py-3 text-sm hover-scale shadow-md shadow-purple-500/20">Simpan ke Cloud</button>
+                        </div>
+                    </form>
+
+                    <form id="form-pengurus" class="admin-form-el space-y-3 hidden" onsubmit="window.saveAdminData(event)">
+                        <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-100">
+                            <input type="text" id="admin-pengurus-name" required placeholder="Nama Lengkap" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-3 mb-3 outline-none">
+                            <div class="grid grid-cols-2 gap-3 mb-3">
+                                <input type="text" id="admin-pengurus-role" required placeholder="Jabatan" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-3 outline-none">
+                                <input type="number" id="admin-pengurus-phone" required placeholder="No. WA (Cth: 62812...)" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-3 outline-none">
+                            </div>
+                            <label class="file-upload-label hover-scale mb-4">
+                                <i class="fa-solid fa-user-tie text-slate-400 text-2xl mb-2"></i>
+                                <span class="text-[10px] text-slate-500 font-medium" id="pengurus-file-name">Upload Foto (Kosongkan bila sama)</span>
+                                <input type="file" id="admin-pengurus-file" accept="image/*" class="hidden" onchange="document.getElementById('pengurus-file-name').innerText = this.files[0].name">
+                            </label>
+                            <button type="submit" class="w-full bg-indigo-600 text-white font-bold rounded-xl py-3 text-sm hover-scale shadow-md shadow-indigo-500/20">Simpan ke Cloud</button>
+                        </div>
+                    </form>
+
+                    <form id="form-galeri" class="admin-form-el space-y-3 hidden" onsubmit="window.saveAdminData(event)">
+                        <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-100">
+                            <input type="text" id="admin-galeri-title" required placeholder="Keterangan Foto" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-3 mb-3 outline-none">
+                            <input type="text" id="admin-galeri-date" required placeholder="Tanggal Kegiatan" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-3 mb-3 outline-none">
+                            <label class="file-upload-label hover-scale mb-4">
+                                <i class="fa-solid fa-camera text-slate-400 text-2xl mb-2"></i>
+                                <span class="text-[10px] text-slate-500 font-medium" id="galeri-file-name">Pilih Foto Utama</span>
+                                <input type="file" id="admin-galeri-file" accept="image/*" class="hidden" onchange="document.getElementById('galeri-file-name').innerText = this.files[0].name">
+                            </label>
+                            <button type="submit" class="w-full bg-rose-600 text-white font-bold rounded-xl py-3 text-sm hover-scale shadow-md shadow-rose-500/20">Simpan ke Cloud</button>
+                        </div>
+                    </form>
+
+                    <form id="form-settings" class="admin-form-el space-y-3 hidden" onsubmit="window.saveAdminData(event)">
+                        <div class="bg-slate-800 p-5 rounded-2xl shadow-sm border border-slate-700">
+                            <p class="text-xs text-slate-400 mb-4">Ubah PIN rahasia untuk mengakses panel pengelola.</p>
+                            <input type="password" id="input-pin-lama" required placeholder="PIN Lama Saat Ini" class="w-full bg-slate-900 text-white border border-slate-700 rounded-xl px-3 py-3 mb-3 outline-none tracking-widest text-center" maxlength="4" inputmode="numeric">
+                            <input type="password" id="input-pin-baru" required placeholder="PIN Baru (4 Angka)" class="w-full bg-white border border-slate-200 rounded-xl px-3 py-3 mb-4 outline-none tracking-widest text-center text-slate-800 font-bold" maxlength="4" inputmode="numeric">
+                            <button type="submit" class="w-full bg-emerald-500 text-white font-bold rounded-xl py-3 text-sm hover-scale shadow-md shadow-emerald-500/20">Update PIN</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+        </main>
+
+        <!-- ====== VIEW: AI CHAT (PEMUDA PINTAR) ====== -->
+        <div id="view-ai" class="view-section absolute inset-0 bg-white flex-col z-[60] pb-safe">
+            <div class="bg-slate-50 p-4 pt-10 border-b border-slate-100 flex items-center gap-3 shrink-0">
+                <button onclick="window.switchView('view-dashboard')" class="w-8 h-8 flex items-center justify-center text-slate-500 hover:bg-slate-200 rounded-full transition shrink-0"><i class="fa-solid fa-arrow-left text-sm"></i></button>
+                <div class="w-8 h-8 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center shrink-0 shadow-inner"><i class="fa-solid fa-user-tie"></i></div>
+                <div>
+                    <h2 class="text-slate-800 font-bold text-sm leading-tight">Pemuda Pintar</h2>
+                    <p class="text-emerald-500 text-[10px] font-medium flex items-center gap-1"><span class="w-1.5 h-1.5 bg-emerald-500 rounded-full animate-pulse"></span> Online</p>
+                </div>
+            </div>
+            <div id="chat-messages" class="flex-1 overflow-y-auto p-4 space-y-4 bg-white pb-6 hide-scrollbar">
+                <div class="flex gap-2 pop-in">
+                    <div class="w-6 h-6 rounded-full bg-blue-50 flex-shrink-0 flex items-center justify-center mt-1"><i class="fa-solid fa-user-tie text-blue-500 text-[10px]"></i></div>
+                    <div id="ai-welcome-msg" class="bg-slate-50 border border-slate-100 p-3 rounded-2xl rounded-tl-none text-[13px] text-slate-700 leading-relaxed max-w-[85%] shadow-sm">
+                        Assalamu'alaikum Bapak/Ibu Warga RT 004! 👋<br><br>Ada yang bisa dibantu? Tanya soal syarat administrasi KTP, jadwal agenda, atau lapor info lingkungan, saya siap jawab dengan senang hati.
+                    </div>
+                </div>
+            </div>
+            <div class="bg-white p-3 border-t border-slate-100 shrink-0 pb-5">
+                <form id="chat-form" class="flex gap-2">
+                    <input type="text" id="chat-input" placeholder="Ketik pesan Anda..." autocomplete="off" class="flex-1 bg-slate-50 border border-slate-200 focus:border-blue-500 focus:bg-white rounded-full px-4 py-2.5 text-xs outline-none transition-all">
+                    <button type="submit" id="chat-submit-btn" class="w-10 h-10 bg-blue-600 hover:bg-blue-700 text-white rounded-full flex items-center justify-center shadow-md disabled:opacity-50 transition-colors"><i class="fa-solid fa-paper-plane text-xs"></i></button>
+                </form>
+            </div>
+        </div>
+
+        <!-- ====== MODAL: CEK LAYANAN PUBLIK ====== -->
+        <div id="modal-layanan" style="display: none;" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[120] items-end sm:items-center justify-center p-0 sm:p-5 opacity-0 transition-opacity duration-300">
+            <div class="bg-white rounded-t-3xl sm:rounded-3xl p-6 w-full max-w-md transition-transform duration-300 translate-y-full sm:translate-y-0" id="modal-layanan-content">
+                <div class="w-12 h-1.5 bg-slate-200 rounded-full mx-auto mb-5 sm:hidden"></div>
+                <div class="flex justify-between items-center mb-2">
+                    <h3 id="layanan-title" class="text-xl font-bold text-slate-800">Cek Layanan</h3>
+                    <button onclick="window.closeLayananModal()" class="w-8 h-8 bg-slate-100 text-slate-500 rounded-full flex items-center justify-center hover-scale"><i class="fa-solid fa-xmark"></i></button>
+                </div>
+                <p id="layanan-desc" class="text-sm text-slate-600 mb-5 leading-relaxed">Penjelasan layanan.</p>
+                
+                <div class="mb-5">
+                    <label id="layanan-input-label" class="block text-xs font-bold text-slate-500 uppercase mb-2">Nomor / Data</label>
+                    <input type="text" id="layanan-input" class="w-full bg-slate-50 border border-slate-300 focus:border-blue-500 focus:bg-white rounded-xl px-4 py-3.5 text-base outline-none transition-all font-bold text-slate-800 shadow-inner tracking-wide">
+                </div>
+
+                <div class="bg-blue-50 border border-blue-100 rounded-xl p-4 mb-6">
+                    <h4 class="text-xs font-bold text-blue-800 uppercase tracking-wide mb-2 flex items-center gap-1.5"><i class="fa-solid fa-circle-info"></i> Panduan Setelah Dialihkan:</h4>
+                    <ul id="layanan-guide" class="text-sm text-blue-700 list-disc list-outside ml-4 space-y-1.5 leading-relaxed font-medium"></ul>
+                </div>
+
+                <button id="btn-cek-layanan" onclick="window.prosesCekLayanan()" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold text-base rounded-xl py-3.5 shadow-md shadow-blue-500/30 transition-all active:scale-95">
+                    CEK SEKARANG
+                </button>
+            </div>
+        </div>
+
+        <!-- ====== MODAL: KEAMANAN PIN ADMIN ====== -->
+        <div id="pin-modal" style="display: none;" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[100] items-center justify-center p-5 opacity-0 transition-opacity duration-300">
+            <div class="bg-white rounded-3xl p-6 w-full max-w-sm transition-transform duration-300 scale-95" id="pin-modal-content">
+                <div class="w-12 h-12 bg-slate-100 rounded-full flex items-center justify-center mx-auto mb-3 text-slate-600"><i class="fa-solid fa-lock text-lg"></i></div>
+                <h3 class="text-base font-bold text-slate-800 mb-1 text-center">Akses Admin</h3>
+                <p class="text-xs text-slate-500 text-center mb-6">Masukkan PIN keamanan pengurus RT.</p>
+                <input type="password" id="pin-input" class="w-full bg-slate-50 border border-slate-200 text-center text-2xl tracking-[0.5em] font-mono rounded-xl px-4 py-3 outline-none focus:border-slate-400 mb-5 transition-all shadow-inner" maxlength="4" placeholder="••••" inputmode="numeric">
+                <div class="flex gap-2">
+                    <button onclick="window.closePinModal()" class="flex-1 bg-white border border-slate-200 text-slate-600 font-bold text-sm rounded-xl py-2.5 hover-scale">Batal</button>
+                    <button onclick="window.verifyPin()" class="flex-1 bg-slate-800 text-white font-bold text-sm rounded-xl py-2.5 hover-scale shadow-md shadow-slate-800/20">Masuk</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- ====== MODAL: KONFIRMASI HAPUS DATA ====== -->
+        <div id="confirm-modal" style="display: none;" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[110] items-center justify-center p-5 opacity-0 transition-opacity duration-300">
+            <div class="bg-white rounded-3xl p-6 w-full max-w-xs text-center transition-transform duration-300 scale-95" id="confirm-modal-content">
+                <div class="w-12 h-12 bg-red-100 text-red-500 rounded-full flex items-center justify-center mx-auto mb-3"><i class="fa-solid fa-triangle-exclamation text-xl"></i></div>
+                <h3 class="text-base font-bold text-slate-800 mb-1">Hapus Data?</h3>
+                <p class="text-xs text-slate-500 mb-6">Data yang dihapus dari Database Cloud tidak bisa dikembalikan.</p>
+                <div class="flex gap-2">
+                    <button onclick="window.closeConfirmModal()" class="flex-1 bg-slate-100 text-slate-600 font-bold text-sm rounded-xl py-2.5 hover-scale">Batal</button>
+                    <button id="btn-confirm-delete" onclick="window.eksekusiHapusData()" class="flex-1 bg-red-500 text-white font-bold text-sm rounded-xl py-2.5 shadow-md shadow-red-500/20 hover-scale">Ya, Hapus</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- NAVBAR BAWAH (Menu Navigasi Layar Bawah) -->
+        <nav id="bottom-nav" style="display: none;" class="absolute bottom-0 w-full bg-white border-t border-slate-100 px-6 py-2 justify-between items-center z-20 pb-safe shadow-[0_-5px_15px_rgba(0,0,0,0.02)] transition-all">
+            <button onclick="window.switchView('view-dashboard', this)" class="nav-item flex flex-col items-center gap-1 text-primary w-16 transition-colors hover:scale-105 active:scale-95"><i class="fa-solid fa-house text-[18px] mb-0.5"></i><span class="text-[9px] font-bold">Beranda</span></button>
+            <button onclick="window.switchView('view-info', this)" class="nav-item flex flex-col items-center gap-1 text-slate-400 hover:text-primary w-16 transition-colors hover:scale-105 active:scale-95"><i class="fa-solid fa-newspaper text-[18px] mb-0.5"></i><span class="text-[9px] font-bold">Kabar</span></button>
+            <button onclick="window.switchView('view-agenda', this)" class="nav-item flex flex-col items-center gap-1 text-slate-400 hover:text-primary w-16 transition-colors hover:scale-105 active:scale-95"><i class="fa-solid fa-calendar-days text-[18px] mb-0.5"></i><span class="text-[9px] font-bold">Agenda</span></button>
+            <button id="nav-admin" onclick="window.triggerAdminAuth(this)" class="nav-item flex flex-col items-center gap-1 text-slate-400 hover:text-primary w-16 transition-colors hover:scale-105 active:scale-95"><i class="fa-solid fa-gear text-[18px] mb-0.5"></i><span class="text-[9px] font-bold">Admin</span></button>
+        </nav>
+
+    </div>
+
+    <!-- KUMPULAN SCRIPT JAVASCRIPT APLIKASI (NON-MODULE / UI UTAMA) -->
+    <script>
+        // ============================================================================
+        // 1. DEKLARASI FUNGSI GLOBAL & DATA SEMENTARA (State)
+        // ============================================================================
+        
+        window.wargaName = '';
+        try { window.wargaName = localStorage.getItem('rt004_username') || ''; } catch(e) {}
+
+        window.isAdminUnlocked = false;
+        window.pendingNavElement = null;
+        window.currentAdminCat = '';
+        window.currentEditId = null;
+        window.pendingDeleteId = null;
+        window.adminPin = "2504"; 
+        window.hasSeededPengurus = false;
+        window.hasSeededLayanan = false;
+        
+        window.statistics = { total: 0, rumah: 0, kk: 0, laki: 0, perempuan: 0 };
+        window.informasiData = [];
+        window.agendaData = [];
+        window.galeriData = [];
+
+        window.initialLayananData = [
+            { id: "L01", title: "Keterangan Tanah Tidak Sengketa", icon: "fa-file-shield text-blue-500", reqs: ["Surat Pengantar RT dan RW.", "Fotokopi KTP dan KK pemohon.", "Fotokopi alas hak/bukti kepemilikan tanah (Sertifikat/Girik/AJB).", "Fotokopi SPPT PBB tahun berjalan & tanda lunas.", "Surat Pernyataan Tidak Sengketa bermaterai dari pemohon."] },
+            { id: "L02", title: "Surat Keterangan Riwayat Tanah", icon: "fa-map-location-dot text-emerald-500", reqs: ["Surat Pengantar RT dan RW.", "Fotokopi KTP dan KK pemohon.", "Fotokopi SPPT PBB tahun berjalan.", "Fotokopi dokumen kepemilikan awal hingga akhir (Letter C/Girik)."] },
+            { id: "L03", title: "Surat Pencari Kerja (Kartu Kuning)", icon: "fa-briefcase text-amber-500", reqs: ["Fotokopi KTP Kota Bekasi.", "Fotokopi KK.", "Fotokopi Ijazah terakhir (terlegalisir).", "Pas foto ukuran 3x4 (2 lembar) latar merah/biru."] },
+            { id: "L04", title: "Surat Keterangan Domisili", icon: "fa-house-user text-cyan-500", reqs: ["Surat Pengantar RT dan RW.", "Fotokopi KTP dan KK.", "Fotokopi Surat Perjanjian Sewa/Kontrak (jika menyewa rumah).", "Pas foto 3x4 (jika diminta kelurahan)."] },
+            { id: "L05", title: "Surat Keterangan Tidak Bekerja", icon: "fa-user-slash text-rose-500", reqs: ["Surat Pengantar RT dan RW.", "Fotokopi KTP dan KK pemohon.", "Surat Pernyataan Belum/Tidak Bekerja di atas materai 10.000."] },
+            { id: "L06", title: "Surat Keterangan Tidak Mampu (SKTM)", icon: "fa-hand-holding-dollar text-orange-500", reqs: ["Surat Pengantar RT dan RW.", "Fotokopi KTP dan KK.", "Foto rumah (Tampak depan, samping, dan dalam/ruang tamu).", "Surat Pernyataan Tidak Mampu bermaterai 10.000 diketahui RT/RW."] },
+            { id: "L07", title: "Keterangan Beda Nama/Tgl/Tahun", icon: "fa-id-card-clip text-purple-500", reqs: ["Surat Pengantar RT dan RW.", "Fotokopi KTP dan KK.", "Dokumen asli dan fotokopi yang terdapat perbedaan data (Ijazah, Akta Kelahiran, Buku Nikah, dll)."] },
+            { id: "L08", title: "Surat Keterangan Kematian", icon: "fa-book-skull text-slate-500", reqs: ["Surat Pengantar RT dan RW.", "Fotokopi KTP dan KK Almarhum/Almarhumah.", "KTP asli Almarhum/Almarhumah (untuk ditarik/dimatikan).", "Surat Keterangan Kematian dari Rumah Sakit/Puskesmas/Dokter.", "Fotokopi KTP Pelapor dan 2 orang saksi."] },
+            { id: "L09", title: "Pindah Penduduk Keluar (Bekasi)", icon: "fa-truck-plane text-teal-500", reqs: ["Surat Pengantar RT dan RW.", "KTP Asli dan KK Asli pemohon.", "Mengisi Formulir Pindah (F-1.03) di Kelurahan.", "Alamat tujuan pindah yang jelas dan lengkap."] },
+            { id: "L10", title: "KTP dan KK Hilang / Rusak", icon: "fa-id-card text-red-500", reqs: ["Surat Pengantar RT dan RW.", "Surat Keterangan Kehilangan dari Kepolisian (Jika hilang).", "KTP/KK asli yang rusak (Jika rusak).", "Fotokopi KTP/KK lama (Jika ada)."] },
+            { id: "L11", title: "Surat Pernyataan Ahli Waris", icon: "fa-people-line text-indigo-500", reqs: ["Surat Pengantar RT dan RW.", "Surat Keterangan Kematian Pewaris.", "Fotokopi KTP dan KK semua Ahli Waris.", "Fotokopi Buku Nikah Pewaris.", "Fotokopi Akta Kelahiran semua Ahli Waris."] },
+            { id: "L12", title: "Surat Pencatatan Perkawinan", icon: "fa-ring text-pink-500", reqs: ["Surat Pengantar RT dan RW (Membentuk form N1, N2, N4).", "Fotokopi KTP dan KK kedua calon mempelai.", "Fotokopi KTP Orang Tua / Wali.", "Fotokopi Akta Kelahiran dan Ijazah terakhir calon.", "Pas foto ukuran 2x3 dan 3x4."] },
+            { id: "L13", title: "Izin Penggunaan Tanah Makam", icon: "fa-monument text-slate-600", reqs: ["Surat Keterangan Kematian dari Kelurahan/RS.", "Fotokopi KTP dan KK Almarhum/Almarhumah.", "Fotokopi KTP Ahli Waris / Penanggung Jawab makam.", "Membayar retribusi resmi di TPU atau Bank daerah."] },
+            { id: "L14", title: "Perpanjangan Izin Makam (3 Thn)", icon: "fa-clock-rotate-left text-blue-400", reqs: ["Asli dan Fotokopi IPTM lama yang akan habis masa berlakunya.", "Fotokopi KTP Ahli Waris / Penanggung Jawab.", "Fotokopi KK Ahli Waris.", "Mengisi formulir perpanjangan di kantor TPU."] },
+            { id: "L15", title: "Mutasi PBB-P2 di UPPRD", icon: "fa-money-check-dollar text-emerald-600", reqs: ["Fotokopi KTP dan KK pemohon.", "Fotokopi SPPT PBB tahun terakhir.", "Fotokopi bukti kepemilikan tanah (Sertifikat/AJB).", "Bukti lunas PBB (STTS) tahun sebelumnya.", "Mengisi form SPOP/LSPOP."] },
+            { id: "L16", title: "Permohonan Keringanan PBB", icon: "fa-file-invoice-dollar text-amber-600", reqs: ["Fotokopi KTP dan KK.", "Fotokopi SPPT PBB tahun yang dimohonkan.", "Surat Permohonan Keringanan yang ditujukan kepada Kepala Bapenda.", "Surat Keterangan Tidak Mampu (SKTM) dari Kelurahan (Bagi jalur tidak mampu/pensiunan)."] },
+            { id: "L17", title: "Surat Keterangan Ahli Waris", icon: "fa-users-rectangle text-cyan-600", reqs: ["Surat Pengantar RT dan RW.", "Kutipan Akta Kematian Pewaris.", "Fotokopi Buku Nikah Pewaris.", "Fotokopi KTP, KK, dan Akta Kelahiran seluruh Ahli Waris.", "Draf Surat Keterangan Ahli Waris bermaterai yang siap ditandatangani Lurah/Camat."] },
+            { id: "L18", title: "Pindah Penduduk ke Dalam (Bekasi)", icon: "fa-truck-arrow-right text-emerald-400", reqs: ["Surat Keterangan Pindah WNI (SKPWNI) asli dari daerah asal.", "KTP asli pemohon.", "Fotokopi Surat Nikah/Buku Nikah (Bagi yang sudah menikah).", "Surat Pengantar RT dan RW domisili baru di Bekasi."] }
+        ];
+        window.layananData = [...window.initialLayananData];
+
+        const baseTime = Date.now();
+        window.defaultPengurusData = [
+            { role: "Ketua RT", name: "ROMADHON" }, { role: "Sekretaris", name: "FAJAR HAKIM" }, { role: "Bendahara", name: "PRASOJO SUDARMO" },
+            { role: "Bidang Keamanan", name: "IYAN SOPYAN" }, { role: "Bidang Keamanan", name: "AGUS" },
+            { role: "Bidang Kerohanian", name: "H. SUGIONO" }, { role: "Bidang Kerohanian", name: "ENJANG SUHERMAN" },
+            { role: "Bidang Kebersihan & LH", name: "MASTUR" }, { role: "Bidang Sosial Budaya", name: "BUDIARTI" },
+            { role: "Bidang Sosial Budaya", name: "NUNI" }, { role: "Bidang Sosial Budaya", name: "IIS" },
+            { role: "Bidang Pemuda & Olahraga", name: "HAFIDZ ROCHIMI" }, { role: "Bidang Pemuda & Olahraga", name: "MUHDI DAROJAT" },
+            { role: "Bidang Humas", name: "GILANG MUHAMMAD FAUZI" }, { role: "Bidang Humas", name: "THOMAS NAZARETH" },
+            { role: "Bidang Humas", name: "ZEFAN" }, { role: "Bidang Humas", name: "NADHA ISWARANIE" },
+            { role: "Bidang Humas", name: "HILDA CHANDRANINGRUM" }, { role: "Bidang Perlengkapan & UMKM", name: "BAYU EKA PUTRA" },
+            { role: "Bidang Perlengkapan & UMKM", name: "MUHAMMAD FAIZAL" }, { role: "Bidang Perlengkapan & UMKM", name: "MARIA" },
+            { role: "Bidang Perlengkapan & UMKM", name: "LUSI" }, { role: "Bidang Arisan", name: "MARTIN" },
+            { role: "Bidang Koperasi", name: "ELVIN" }, { role: "Bidang Koperasi", name: "URI SAMSURI" },
+            { role: "Bidang Kesenian", name: "JOKO BUDIONO" }, { role: "Bidang Kesenian", name: "SOPIAH" },
+            { role: "Bidang Kesenian", name: "WAHYUNINGSIH" }, { role: "Bidang Konsumsi", name: "ENUNG ROSMAYANTI" }
+        ].map((p, index) => ({ id: "p_" + index, role: p.role, name: p.name, phone: "", img: "", timestamp: baseTime - (index * 1000) }));
+        window.pengurusData = [...window.defaultPengurusData];
+
+        window.showToast = function(message) {
+            const container = document.getElementById('toast-container');
+            const toast = document.createElement('div');
+            toast.className = 'toast show';
+            toast.innerHTML = `<i class="fa-regular fa-circle-check mr-1 text-emerald-400"></i> ${message}`;
+            container.appendChild(toast);
+            setTimeout(() => { toast.classList.remove('show'); setTimeout(() => toast.remove(), 300); }, 3000);
+        }
+
+        window.fileToBase64 = (file) => new Promise((resolve, reject) => {
+            const reader = new FileReader();
+            reader.readAsDataURL(file);
+            reader.onload = (event) => {
+                const img = new Image();
+                img.onload = () => {
+                    const canvas = document.createElement('canvas');
+                    const MAX_WIDTH = 800; let scaleSize = 1;
+                    if(img.width > MAX_WIDTH) { scaleSize = MAX_WIDTH / img.width; }
+                    canvas.width = img.width * scaleSize; canvas.height = img.height * scaleSize;
+                    const ctx = canvas.getContext('2d');
+                    ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+                    resolve(canvas.toDataURL('image/jpeg', 0.6)); 
+                };
+                img.src = event.target.result;
+            };
+            reader.onerror = error => reject(error);
+        });
+
+        window.updateStatsUI = function() {
+            document.getElementById('stat-total-warga').innerText = window.statistics.total || 0;
+            document.getElementById('stat-total-rumah').innerText = window.statistics.rumah || 0;
+            document.getElementById('stat-total-kk').innerText = window.statistics.kk || 0;
+            document.getElementById('stat-laki').innerText = window.statistics.laki || 0;
+            document.getElementById('stat-perempuan').innerText = window.statistics.perempuan || 0;
+        }
+
+        window.renderInfo = function() {
+            const html = window.informasiData.map(item => `
+                <div onclick="window.openKabarDetail('${item.id}')" class="bg-white p-3 rounded-2xl shadow-sm border border-slate-100 flex gap-3 cursor-pointer hover-scale animate-item hover:shadow-md transition-shadow">
+                    ${item.img ? `<img src="${item.img}" class="w-10 h-10 rounded-xl object-cover">` : `<div class="w-10 h-10 rounded-xl flex items-center justify-center text-white ${item.color || 'bg-emerald-500'}"><i class="fa-solid ${item.icon || 'fa-bullhorn'} text-sm"></i></div>`}
+                    <div class="flex-1"><h3 class="font-bold text-slate-800 text-xs mb-0.5">${item.title}</h3><p class="text-[10px] text-slate-600 line-clamp-2">${item.desc}</p></div>
+                </div>
+            `).join('');
+            document.getElementById('dashboard-info-list').innerHTML = html || '<p class="text-xs text-slate-400 text-center py-4 bg-white rounded-xl border border-dashed border-slate-200">Belum ada kabar terbaru.</p>';
+            document.getElementById('full-info-list').innerHTML = html || '<p class="text-xs text-slate-400 text-center py-4 bg-white rounded-xl border border-dashed border-slate-200">Belum ada kabar terbaru.</p>';
+        }
+
+        window.openKabarDetail = function(id) {
+            const item = window.informasiData.find(x => x.id === id);
+            if (!item) return;
+            let mediaHtml = item.img 
+                ? `<img src="${item.img}" class="w-full h-56 object-cover rounded-2xl mb-5 shadow-md">`
+                : `<div class="w-full h-40 rounded-2xl flex items-center justify-center text-white ${item.color || 'bg-emerald-500'} mb-5 shadow-md"><i class="fa-solid ${item.icon || 'fa-bullhorn'} text-6xl"></i></div>`;
+            document.getElementById('kabar-detail-content').innerHTML = `
+                ${mediaHtml}
+                <p class="text-[10px] text-slate-400 mb-2 flex items-center gap-1.5 font-medium"><i class="fa-regular fa-clock"></i> Dipublikasikan: ${item.date || 'Baru Saja'}</p>
+                <h2 class="text-2xl font-black text-slate-800 mb-4 leading-tight tracking-tight">${item.title}</h2>
+                <div class="text-[13px] text-slate-600 leading-loose whitespace-pre-wrap font-medium">${item.desc}</div>
+            `;
+            window.switchView('view-kabar-detail');
+        }
+
+        window.renderAgenda = function() { 
+            document.getElementById('agenda-list').innerHTML = window.agendaData.map(item => `
+                <div class="bg-white p-3.5 rounded-2xl shadow-sm border border-slate-100 flex items-center gap-4 animate-item hover:shadow-md transition-shadow">
+                    <div class="bg-indigo-50 w-12 h-12 rounded-xl flex items-center justify-center border border-indigo-100"><span class="text-sm font-bold text-indigo-600">${(item.date || '').split(' ')[0]}</span></div>
+                    <div class="flex-1"><h3 class="font-bold text-slate-800 text-sm mb-1">${item.title}</h3><div class="text-[10px] font-medium text-slate-500 flex flex-wrap gap-x-3 gap-y-1"><span class="flex items-center gap-1"><i class="fa-regular fa-clock text-slate-400"></i> ${item.time}</span> <span class="flex items-center gap-1"><i class="fa-solid fa-location-dot text-slate-400"></i> ${item.loc}</span></div></div>
+                </div>
+            `).join('') || '<p class="text-xs text-slate-400 text-center py-4 bg-white rounded-xl border border-dashed border-slate-200">Tidak ada agenda terdekat.</p>'; 
+        }
+
+        window.renderPengurus = function() { 
+            document.getElementById('pengurus-list').innerHTML = window.pengurusData.map(item => `
+                <div class="bg-white p-4 rounded-2xl shadow-sm border border-slate-100 text-center animate-item hover:shadow-md transition-shadow">
+                    ${item.img ? `<img src="${item.img}" class="w-14 h-14 rounded-full mx-auto object-cover mb-3 border-2 border-slate-50 shadow-sm">` : `<div class="w-14 h-14 rounded-full mx-auto bg-slate-50 flex items-center justify-center text-slate-300 mb-3 border border-slate-200"><i class="fa-solid fa-user text-2xl"></i></div>`}
+                    <span class="text-[9px] font-bold text-primary uppercase tracking-wider bg-emerald-50 px-2 py-0.5 rounded-md inline-block mb-1.5">${item.role}</span>
+                    <h3 class="font-bold text-slate-800 text-xs mb-3">${item.name}</h3>
+                    ${item.phone ? `<a href="https://wa.me/${item.phone}" target="_blank" class="block w-full py-2 bg-slate-800 text-white rounded-xl text-[10px] font-bold hover-scale shadow-md"><i class="fa-brands fa-whatsapp"></i> Hubungi</a>` : `<div class="w-full py-2 bg-slate-100 text-slate-400 rounded-xl text-[10px] font-bold">No. WA Belum Diisi</div>`}
+                </div>
+            `).join('') || '<p class="text-xs text-slate-400 col-span-2 text-center py-4 bg-white rounded-xl border border-dashed border-slate-200">Data belum ditambahkan.</p>'; 
+        }
+
+        window.renderGaleri = function() { 
+            document.getElementById('galeri-list').innerHTML = window.galeriData.map(item => `
+                <div class="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden animate-item hover-scale cursor-pointer group">
+                    <div class="overflow-hidden h-32 w-full"><img src="${item.img}" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"></div>
+                    <div class="p-3 bg-white relative z-10"><h3 class="font-bold text-slate-800 text-[11px] truncate">${item.title}</h3><p class="text-[9px] text-slate-400 font-medium mt-0.5">${item.date}</p></div>
+                </div>
+            `).join('') || '<p class="text-xs text-slate-400 col-span-2 text-center py-4 bg-white rounded-xl border border-dashed border-slate-200">Belum ada foto kegiatan.</p>'; 
+        }
+
+        window.toggleAccordion = function(id) {
+            const content = document.getElementById(id);
+            const icon = document.getElementById('icon-' + id);
+            if (content.classList.contains('hidden')) {
+                content.classList.remove('hidden'); icon.classList.add('rotate-180');
+            } else {
+                content.classList.add('hidden'); icon.classList.remove('rotate-180');
+            }
+        }
+
+        window.filterLayanan = function(query) {
+            const filtered = window.layananData.filter(l => l.title.toLowerCase().includes(query.toLowerCase()));
+            document.getElementById('layanan-list').innerHTML = filtered.map(item => `
+                <div class="bg-white border border-slate-100 rounded-2xl shadow-sm animate-item overflow-hidden transition-shadow hover:shadow-md">
+                    <button onclick="window.toggleAccordion('layanan-${item.id}')" class="w-full p-4 flex justify-between items-center bg-white hover:bg-slate-50 transition-colors">
+                        <h3 class="font-bold text-[13px] text-slate-800 flex items-center gap-3 text-left">
+                            <div class="w-8 h-8 rounded-full bg-slate-50 flex items-center justify-center shrink-0 border border-slate-100"><i class="fa-solid ${item.icon} text-sm"></i></div>
+                            <span>${item.title}</span>
+                        </h3>
+                        <i class="fa-solid fa-chevron-down text-slate-400 text-xs transition-transform duration-300" id="icon-layanan-${item.id}"></i>
+                    </button>
+                    <div id="layanan-${item.id}" class="hidden px-5 pb-5 pt-1 bg-slate-50 border-t border-slate-100">
+                        <h4 class="text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-2.5 mt-2">Syarat & Prosedur:</h4>
+                        <ul class="text-[11px] text-slate-600 list-decimal list-outside ml-4 space-y-1.5 font-medium leading-relaxed">
+                            ${(item.reqs || []).map(r => `<li>${r}</li>`).join('')}
+                        </ul>
+                    </div>
+                </div>
+            `).join('') || '<p class="text-xs text-slate-400 text-center mt-5 py-4 bg-white rounded-xl border border-dashed border-slate-200">Layanan yang Anda cari tidak ditemukan.</p>';
+        }
+
+        window.switchView = function(viewId, navElement = null) {
+            document.querySelectorAll('.view-section').forEach(el => el.classList.remove('active'));
+            document.getElementById(viewId).classList.add('active');
+            
+            const header = document.getElementById('main-header');
+            const bottomNav = document.getElementById('bottom-nav');
+
+            if (viewId === 'view-login') {
+                header.style.display = 'none'; bottomNav.style.display = 'none';
+            } else {
+                header.style.display = 'flex';
+                bottomNav.style.display = (viewId === 'view-ai' || viewId === 'view-kabar-detail' || viewId === 'view-tutorial') ? 'none' : 'flex';
+            }
+            
+            if (navElement) {
+                document.querySelectorAll('.nav-item').forEach(el => el.classList.replace('text-primary', 'text-slate-400'));
+                navElement.classList.replace('text-slate-400', 'text-primary');
+            }
+        }
+
+        // ============================================================================
+        // FITUR CEK LAYANAN PUBLIK
+        // ============================================================================
+        const cekLayananData = {
+            'pbb': { title: 'Cek PBB', desc: 'Masukkan Nomor Objek Pajak (NOP) Anda. Sistem akan otomatis menyalin NOP dan mengarahkan Anda ke portal Bapenda.', label: 'Nomor Objek Pajak (NOP)', placeholder: 'Contoh: 32.75.xxx.xxx', url: 'https://bapenda.bekasikota.go.id/', guide: ['Tekan lama di kolom NOP lalu pilih <b>Tempel / Paste</b>', 'Klik tombol <b>Cari</b> atau <b>Cek Tagihan</b>'] },
+            'kendaraan': { title: 'Pajak Kendaraan', desc: 'Cek pajak kendaraan bermotor (Motor/Mobil) Anda melalui portal Bapenda Jawa Barat (Sambara).', label: 'Plat Nomor Kendaraan', placeholder: 'Contoh: B 1234 XYZ', url: 'https://bapenda.jabarprov.go.id/infopkb/', guide: ['Tekan lama di kolom Plat lalu pilih <b>Tempel / Paste</b>', 'Pilih warna plat kendaraan', 'Klik tombol <b>Cari</b>'] },
+            'listrik': { title: 'Cek Tagihan Listrik', desc: 'Masukkan ID Pelanggan PLN Anda untuk mengecek tagihan listrik.', label: 'ID Pelanggan PLN', placeholder: 'Contoh: 51234567890', url: 'https://layanan.pln.co.id/', guide: ['Tekan lama di kolom ID lalu pilih <b>Tempel / Paste</b>', 'Pilih menu <b>Informasi Tagihan</b>'] },
+            'air': { title: 'Cek Air (PDAM)', desc: 'Cek tagihan air PDAM / Tirta Patriot Anda secara online.', label: 'Nomor Pelanggan', placeholder: 'Contoh: 0123456', url: 'https://tirtapatriot.co.id/', guide: ['Tekan lama di kolom Nomor lalu pilih <b>Tempel / Paste</b>', 'Klik tombol <b>Cek Tagihan</b>'] },
+            'bpjs': { title: 'Cek BPJS Kesehatan', desc: 'Mengecek status kepesertaan atau tagihan BPJS melalui portal resmi BPJS Kesehatan.', label: 'NIK KTP / Nomor BPJS', placeholder: 'Contoh: 3271xxxxxxxxxxxx', url: 'https://bpjs-kesehatan.go.id/', guide: ['Masuk ke layanan CHIKA atau portal', 'Tekan lama di kolom NIK lalu pilih <b>Tempel / Paste</b>', 'Ikuti instruksi di layar'] },
+            'bansos': { title: 'Cek Status Bansos', desc: 'Masukkan NIK KTP untuk melihat apakah Anda terdaftar sebagai penerima Bantuan Sosial dari Kemensos.', label: 'NIK KTP', placeholder: 'Contoh: 3271xxxxxxxxxxxx', url: 'https://cekbansos.kemensos.go.id/', guide: ['Pilih Provinsi, Kota, Kecamatan, & Kelurahan', 'Tekan lama di Nama/NIK lalu pilih <b>Tempel / Paste</b>', 'Ketik kode huruf (Captcha) lalu klik <b>Cari Data</b>'] }
+        };
+
+        let activeLayananId = null;
+
+        window.openLayananModal = function(id) {
+            activeLayananId = id;
+            const data = cekLayananData[id];
+            document.getElementById('layanan-title').innerText = data.title;
+            document.getElementById('layanan-desc').innerText = data.desc;
+            document.getElementById('layanan-input-label').innerText = data.label;
+            const input = document.getElementById('layanan-input');
+            input.placeholder = data.placeholder; input.value = ''; 
+            document.getElementById('layanan-guide').innerHTML = data.guide.map(g => `<li>${g}</li>`).join('');
+            
+            const btn = document.getElementById('btn-cek-layanan');
+            btn.innerHTML = 'CEK SEKARANG'; btn.disabled = false;
+            
+            const modal = document.getElementById('modal-layanan');
+            const content = document.getElementById('modal-layanan-content');
+            modal.style.display = 'flex';
+            setTimeout(() => { modal.style.opacity = '1'; content.classList.remove('translate-y-full', 'scale-95'); }, 10);
+        }
+
+        window.closeLayananModal = function() {
+            const modal = document.getElementById('modal-layanan');
+            const content = document.getElementById('modal-layanan-content');
+            modal.style.opacity = '0'; content.classList.add('translate-y-full', 'scale-95');
+            setTimeout(() => modal.style.display = 'none', 300);
+        }
+
+        window.prosesCekLayanan = function() {
+            const input = document.getElementById('layanan-input');
+            if (!input.value.trim()) { window.showToast("Maaf, data tidak boleh kosong!"); input.focus(); return; }
+            
+            try { input.select(); document.execCommand('copy'); } catch(e) {}
+            
+            const btn = document.getElementById('btn-cek-layanan');
+            btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Mengalihkan...';
+            btn.disabled = true;
+            window.showToast("Data berhasil disalin! Bersiap dialihkan...");
+
+            setTimeout(() => { window.open(cekLayananData[activeLayananId].url, '_blank'); window.closeLayananModal(); }, 1500);
+        }
+
+        // ============================================================================
+        // LOGIKA ADMIN & CRUD FALLBACK (OFFLINE)
+        // ============================================================================
+        window.showPinModal = function() { 
+            const m = document.getElementById('pin-modal');
+            const content = document.getElementById('pin-modal-content');
+            m.style.display = 'flex'; setTimeout(() => { m.style.opacity = '1'; content.classList.remove('scale-95'); }, 10); 
+            setTimeout(() => document.getElementById('pin-input').focus(), 300); 
+        }
+        window.closePinModal = function() { 
+            const m = document.getElementById('pin-modal');
+            const content = document.getElementById('pin-modal-content');
+            m.style.opacity = '0'; content.classList.add('scale-95');
+            setTimeout(() => m.style.display = 'none', 300); 
+        }
+        window.triggerAdminAuth = function(navElement) {
+            if (window.isAdminUnlocked) {
+                window.switchView('view-admin', navElement);
+                document.getElementById('admin-home').classList.remove('hidden');
+                document.getElementById('admin-list').classList.add('hidden');
+                document.getElementById('admin-form').classList.add('hidden');
+            } else {
+                window.pendingNavElement = navElement; window.showPinModal();
+            }
+        }
+        window.verifyPin = function() {
+            if (btoa(document.getElementById('pin-input').value) === btoa(window.adminPin)) { 
+                window.closePinModal(); window.isAdminUnlocked = true;
+                setTimeout(() => {
+                    window.switchView('view-admin', window.pendingNavElement);
+                    document.getElementById('admin-home').classList.remove('hidden');
+                    document.getElementById('admin-list').classList.add('hidden');
+                    document.getElementById('admin-form').classList.add('hidden');
+                }, 300); 
+            } else { window.showToast('Maaf, PIN yang Anda masukkan Salah!'); document.getElementById('pin-input').value = ''; }
+        }
+        window.lockAdmin = function() {
+            window.isAdminUnlocked = false; document.getElementById('pin-input').value = '';
+            window.switchView('view-dashboard', document.querySelectorAll('.nav-item')[0]);
+            window.showToast('Panel Admin Berhasil Dikunci');
+        }
+
+        window.getCategoryArray = function(cat) {
+            switch(cat) {
+                case 'info': return window.informasiData;
+                case 'layanan': return window.layananData;
+                case 'agenda': return window.agendaData;
+                case 'pengurus': return window.pengurusData;
+                case 'galeri': return window.galeriData;
+            } return [];
+        }
+
+        window.openAdminCategory = function(cat) {
+            window.currentAdminCat = cat;
+            document.getElementById('admin-home').classList.add('hidden');
+            
+            if (cat === 'stats') {
+                document.getElementById('admin-form').classList.remove('hidden');
+                document.getElementById('admin-form-title').innerText = "Update Statistik Warga";
+                document.querySelectorAll('.admin-form-el').forEach(el => el.classList.add('hidden'));
+                document.getElementById('form-stats').classList.remove('hidden');
+                
+                document.getElementById('input-stat-warga').value = window.statistics.total || 0;
+                document.getElementById('input-stat-rumah').value = window.statistics.rumah || 0;
+                document.getElementById('input-stat-kk').value = window.statistics.kk || 0;
+                document.getElementById('input-stat-laki').value = window.statistics.laki || 0;
+                document.getElementById('input-stat-perempuan').value = window.statistics.perempuan || 0;
+            } else if (cat === 'settings') {
+                document.getElementById('admin-form').classList.remove('hidden');
+                document.getElementById('admin-form-title').innerText = "Ubah PIN Akses Admin";
+                document.querySelectorAll('.admin-form-el').forEach(el => el.classList.add('hidden'));
+                document.getElementById('form-settings').classList.remove('hidden');
+                document.getElementById('input-pin-lama').value = '';
+                document.getElementById('input-pin-baru').value = '';
+            } else {
+                document.getElementById('admin-list').classList.remove('hidden');
+                const titles = {info: "Kabar Lingkungan", layanan: "Info Layanan", agenda: "Agenda Kegiatan", pengurus: "Pengurus RT", galeri: "Galeri Foto"};
+                document.getElementById('admin-cat-title').innerText = titles[cat];
+                window.renderAdminList();
+            }
+        }
+
+        window.closeAdminCategory = function() {
+            document.getElementById('admin-list').classList.add('hidden');
+            document.getElementById('admin-home').classList.remove('hidden');
+        }
+
+        window.renderAdminList = function() {
+            const arr = window.getCategoryArray(window.currentAdminCat);
+            let html = '';
+            arr.forEach(item => {
+                let displayTitle = item.title || item.name || `Data: ${item.date}`;
+                html += `
+                    <div class="bg-white p-3.5 rounded-xl border border-slate-200 flex justify-between items-center shadow-sm animate-item">
+                        <div class="text-sm font-bold text-slate-700 truncate pr-3 flex-1">${displayTitle}</div>
+                        <div class="flex gap-2 shrink-0">
+                            <button onclick="window.openAdminForm('${item.id}')" class="w-8 h-8 bg-blue-50 text-blue-500 rounded-lg hover-scale"><i class="fa-solid fa-pen text-xs"></i></button>
+                            <button onclick="window.requestDelete('${item.id}')" class="w-8 h-8 bg-red-50 text-red-500 rounded-lg hover-scale"><i class="fa-solid fa-trash-can text-xs"></i></button>
+                        </div>
+                    </div>
+                `;
+            });
+            document.getElementById('admin-item-container').innerHTML = html || '<div class="text-center text-slate-400 text-xs py-4">Data masih kosong di Cloud.</div>';
+        }
+
+        window.openAdminForm = function(id = null) {
+            window.currentEditId = id;
+            document.getElementById('admin-list').classList.add('hidden');
+            document.getElementById('admin-form').classList.remove('hidden');
+            document.getElementById('admin-form-title').innerText = id ? "Edit Data" : "Tambah Data Baru";
+            
+            document.querySelectorAll('.admin-form-el').forEach(el => el.classList.add('hidden'));
+            const formEl = document.getElementById(`form-${window.currentAdminCat}`);
+            formEl.classList.remove('hidden');
+            formEl.reset();
+
+            document.querySelectorAll('.file-upload-label span').forEach(el => { if(el.id) el.innerText = "Pilih Gambar/Foto Baru"; });
+
+            if (id) {
+                const item = window.getCategoryArray(window.currentAdminCat).find(x => x.id === id);
+                if (!item) return;
+                
+                if (window.currentAdminCat === 'info') {
+                    document.getElementById('admin-info-title').value = item.title; document.getElementById('admin-info-desc').value = item.desc;
+                } else if (window.currentAdminCat === 'layanan') {
+                    document.getElementById('admin-layanan-title').value = item.title; document.getElementById('admin-layanan-icon').value = item.icon; document.getElementById('admin-layanan-reqs').value = (item.reqs || []).join('\n');
+                } else if (window.currentAdminCat === 'agenda') {
+                    document.getElementById('admin-agenda-title').value = item.title; document.getElementById('admin-agenda-date').value = item.date; document.getElementById('admin-agenda-time').value = item.time; document.getElementById('admin-agenda-loc').value = item.loc;
+                } else if (window.currentAdminCat === 'pengurus') {
+                    document.getElementById('admin-pengurus-name').value = item.name; document.getElementById('admin-pengurus-role').value = item.role; document.getElementById('admin-pengurus-phone').value = item.phone;
+                } else if (window.currentAdminCat === 'galeri') {
+                    document.getElementById('admin-galeri-title').value = item.title; document.getElementById('admin-galeri-date').value = item.date;
+                }
+            }
+        }
+
+        window.closeAdminForm = function() {
+            document.getElementById('admin-form').classList.add('hidden');
+            if (window.currentAdminCat === 'stats' || window.currentAdminCat === 'settings') { 
+                document.getElementById('admin-home').classList.remove('hidden'); 
+            } else { 
+                document.getElementById('admin-list').classList.remove('hidden'); 
+            }
+        }
+
+        window.requestDelete = function(id) {
+            window.pendingDeleteId = id;
+            const modal = document.getElementById('confirm-modal');
+            const content = document.getElementById('confirm-modal-content');
+            modal.style.display = 'flex'; setTimeout(() => { modal.style.opacity = '1'; content.classList.remove('scale-95'); }, 10);
+        }
+
+        window.closeConfirmModal = function() {
+            const modal = document.getElementById('confirm-modal');
+            const content = document.getElementById('confirm-modal-content');
+            modal.style.opacity = '0'; content.classList.add('scale-95');
+            setTimeout(() => modal.style.display = 'none', 300);
+            window.pendingDeleteId = null;
+        }
+
+        window.reRenderAppViews = function() {
+            window.updateStatsUI(); window.renderInfo(); window.renderAgenda(); window.renderPengurus(); window.renderGaleri(); window.filterLayanan(document.getElementById('search-layanan')?.value || '');
+        }
+
+        // FUNGSI ADMIN FALLBACK JIKA FIREBASE DIBLOKIR/GAGAL
+        window.saveAdminData = async function(e) {
+            e.preventDefault();
+            window.showToast("Mode Offline: Perubahan hanya sementara.");
+            window.closeAdminForm(); window.reRenderAppViews();
+        };
+
+        window.eksekusiHapusData = async function() {
+            window.showToast("Mode Offline: Simulasi data dihapus.");
+            window.closeConfirmModal(); window.reRenderAppViews();
+        };
+
+        document.getElementById('form-login').addEventListener('submit', function(e) {
+            e.preventDefault();
+            const name = document.getElementById('login-name').value.trim();
+            if(!name) { window.showToast("Nama tidak boleh kosong!"); return; }
+            try { localStorage.setItem('rt004_username', name); } catch(err) {}
+            window.wargaName = name;
+            
+            const chatWelcome = document.getElementById('ai-welcome-msg');
+            if(chatWelcome) chatWelcome.innerHTML = `Assalamu'alaikum Bapak/Ibu <b>${name}</b>! 👋<br><br>Ada yang bisa dibantu? Tanya soal syarat administrasi KTP, jadwal agenda, atau lapor info lingkungan, saya siap jawab dengan senang hati.`;
+            const formPdfNama = document.getElementById('pdf-nama');
+            if(formPdfNama) formPdfNama.value = name;
+
+            document.getElementById('view-login').style.display = 'none';
+            document.getElementById('main-header').style.display = 'flex';
+            document.getElementById('bottom-nav').style.display = 'flex';
+            window.switchView('view-dashboard', document.querySelectorAll('.nav-item')[0]);
+            window.showToast(`Selamat datang di aplikasi, ${name}!`);
+        });
+
+        // ============================================================================
+        // LOGIKA TOMBOL FORM, PDF & AI CHATBOT
+        // ============================================================================
+
+        const getBase64ImageFromUrl = async (imageUrl) => {
+            const proxies = [
+                imageUrl, 
+                'https://api.allorigins.win/raw?url=' + encodeURIComponent(imageUrl),
+                'https://api.codetabs.com/v1/proxy?quest=' + imageUrl,
+                'https://corsproxy.io/?' + encodeURIComponent(imageUrl)
+            ];
+            for (let proxyUrl of proxies) {
+                try {
+                    const controller = new AbortController();
+                    const timeoutId = setTimeout(() => controller.abort(), 6000); 
+                    const res = await fetch(proxyUrl, { signal: controller.signal });
+                    clearTimeout(timeoutId);
+                    if (!res.ok) throw new Error("Fetch failed");
+                    const blob = await res.blob();
+                    if (!blob.type.startsWith('image/')) throw new Error("Bukan file gambar");
+                    return await new Promise((resolve, reject) => {
+                        const reader = new FileReader();
+                        reader.onloadend = () => resolve(reader.result);
+                        reader.onerror = reject; 
+                        reader.readAsDataURL(blob);
+                    });
+                } catch (e) { console.log("Jalur gagal: " + proxyUrl); }
+            }
+            throw new Error("Semua jalur proxy gagal");
+        };
+
+        document.getElementById('form-pdf-surat').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const btn = document.getElementById('btn-generate-pdf');
+            btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Memproses Kertas PDF...';
+            btn.disabled = true;
+
+            try {
+                const { jsPDF } = window.jspdf;
+                const doc = new jsPDF('p', 'mm', 'a4'); 
+                
+                try {
+                    const logoUrl = 'https://bekasikota.go.id/uploads/pages/20250926134426-2025-09-26pages134424_thumb.png';
+                    const logoBase64 = await getBase64ImageFromUrl(logoUrl);
+                    
+                    const imgProps = await new Promise((resolve) => {
+                        const img = new Image(); img.onload = () => resolve({ w: img.width, h: img.height }); img.src = logoBase64;
+                    });
+                    
+                    const ratio = imgProps.w / imgProps.h;
+                    let targetW = 40; let targetH = 40; 
+                    if (ratio > 1) { targetH = targetW / ratio; } else { targetW = targetH * ratio; }
+                    
+                    const xPos = 15 + (40 - targetW) / 2; const yPos = 12;
+                    doc.addImage(logoBase64, 'PNG', xPos, yPos, targetW, targetH);
+                } catch(err) { console.log("Logo PDF gagal dimuat ke dalam kertas."); }
+
+                doc.setFont("helvetica", "bold"); doc.setFontSize(14);
+                doc.text("RUKUN TETANGGA 004", 115, 20, {align: "center"});
+                doc.text("RUKUN WARGA 025", 115, 26, {align: "center"});
+                doc.setFontSize(12);
+                doc.text("KELURAHAN TELUK PUCUNG, KECAMATAN BEKASI UTARA,", 115, 32, {align: "center"});
+                doc.text("KOTA BEKASI", 115, 38, {align: "center"});
+                doc.setFont("helvetica", "normal"); doc.setFontSize(10);
+                doc.text("Sekretariat : Perum Taman Wisma Asri II, Blok AA32, Kode Pos 17121", 115, 46, {align: "center"});
+                
+                doc.setLineWidth(0.8); doc.line(15, 52, 195, 52);
+                doc.setLineWidth(0.3); doc.line(15, 53.5, 195, 53.5);
+
+                doc.setFont("helvetica", "bold"); doc.setFontSize(14);
+                doc.text("SURAT PENGANTAR", 105, 63, {align: "center"});
+                doc.setLineWidth(0.4); doc.line(78, 64, 132, 64); 
+                doc.setFont("helvetica", "normal"); doc.setFontSize(11);
+                doc.text("NOMOR : ....... / ....... / ....... / RT 004 / RW 025 / ....... / 20....", 105, 70, {align: "center"});
+
+                let y = 86;
+                doc.text("Yang bertanda tangan di bawah ini, menerangkan bahwa :", 20, y);
+                y += 10;
+
+                const rawTgl = document.getElementById('pdf-tgl').value;
+                let formattedTgl = rawTgl;
+                if (rawTgl) {
+                    const monthsId = ["Januari", "Februari", "Maret", "April", "Mei", "Juni", "Juli", "Agustus", "September", "Oktober", "November", "Desember"];
+                    const parts = rawTgl.split('-');
+                    if (parts.length === 3) {
+                        const d = parts[2]; const m = monthsId[parseInt(parts[1], 10) - 1]; const yr = parts[0];
+                        formattedTgl = `${d} ${m} ${yr}`;
+                    }
+                }
+
+                const data = [
+                    { label: "Nama Lengkap", value: document.getElementById('pdf-nama').value.toUpperCase() },
+                    { label: "Tempat/Tgl Lahir", value: document.getElementById('pdf-tempat').value + ", " + formattedTgl },
+                    { label: "Jenis Kelamin", value: document.getElementById('pdf-jk').value },
+                    { label: "Agama", value: document.getElementById('pdf-agama').value },
+                    { label: "Pekerjaan", value: document.getElementById('pdf-pekerjaan').value },
+                    { label: "NIK", value: document.getElementById('pdf-nik').value },
+                    { label: "Alamat", value: document.getElementById('pdf-alamat').value },
+                    { label: "Keperluan", value: document.getElementById('pdf-keperluan').value }
+                ];
+
+                doc.setFontSize(11);
+                data.forEach(item => {
+                    doc.text(item.label, 25, y); doc.text(":", 65, y);
+                    let splitVal = doc.splitTextToSize(item.value, 115); 
+                    doc.text(splitVal, 68, y); y += (splitVal.length * 6) + 2;
+                });
+
+                y += 6;
+                let closingText = "Demikian surat pengantar ini dibuat untuk dapat dipergunakan sebagaimana mestinya dan yang berkepentingan untuk menjadi maklum.";
+                let splitClosing = doc.splitTextToSize(closingText, 170); doc.text(splitClosing, 20, y);
+                
+                y += (splitClosing.length * 6) + 15;
+                const months = ["Januari", "Februari", "Maret", "April", "Mei", "Juni", "Juli", "Agustus", "September", "Oktober", "November", "Desember"];
+                let today = new Date(); let tglSurat = today.getDate() + " " + months[today.getMonth()] + " " + today.getFullYear();
+
+                doc.text("Bekasi, " + tglSurat, 155, y, {align: "center"});
+                y += 6;
+                doc.text("KETUA RW 025", 55, y, {align: "center"});
+                doc.text("KETUA RT 004 / RW 025", 155, y, {align: "center"});
+                
+                y += 28; doc.setFont("helvetica", "bold");
+                doc.text("( ................................. )", 55, y, {align: "center"});
+                doc.text("( ROMADHON )", 155, y, {align: "center"});
+
+                const fileName = `Surat_Pengantar_RT004_${data[0].value.replace(/\s/g, '_')}.pdf`;
+                doc.save(fileName); 
+                window.showToast('PDF Berhasil Diunduh!');
+                
+                window.showToast('Mengarsipkan surat ke Server...');
+                try {
+                    const pdfBase64 = doc.output('datauristring').split(',')[1];
+                    const scriptUrl = 'URL_GOOGLE_SCRIPT_ANDA_DISINI'; 
+                    setTimeout(() => window.showToast('Surat diarsipkan ke sistem!'), 1000);
+                } catch(e) { console.log('Gagal arsip drive: ', e); }
+
+                const namaWA = document.getElementById('pdf-nama').value.toUpperCase();
+                const keperluanWA = document.getElementById('pdf-keperluan').value;
+                const nomorWAPengurus = "6281234567890"; // <- GANTI NOMOR PENGURUS DI SINI
+                
+                const textWA = `*PERMOHONAN SURAT PENGANTAR RT 004*%0A%0A*Nama:* ${namaWA}%0A*Keperluan:* ${keperluanWA}%0A%0A_Catatan: File PDF surat telah diunduh dan diarsipkan otomatis ke sistem. (Bapak/Ibu Warga, silakan lampirkan file PDF ke dalam pesan ini)._`;
+                
+                setTimeout(() => {
+                    window.location.href = `https://api.whatsapp.com/send?phone=${nomorWAPengurus}&text=${textWA}`;
+                    e.target.reset(); window.switchView('view-dashboard', document.querySelectorAll('.nav-item')[0]);
+                }, 1500); 
+
+            } catch (error) {
+                console.error(error); window.showToast('Maaf, Gagal memproses PDF.');
+            } finally {
+                btn.innerHTML = '<i class="fa-brands fa-whatsapp text-lg"></i> Download, Arsip & Kirim WA';
+                btn.disabled = false;
+            }
+        });
+
+        document.getElementById('form-pengaduan').addEventListener('submit', (e) => {
+            e.preventDefault();
+            const kategori = e.target.querySelector('select').value;
+            const detail = e.target.querySelectorAll('textarea')[0].value;
+            const nomorWAPengurus = "6281234567890"; // <- GANTI NOMOR PENGURUS DI SINI
+            const textWA = `*LAPORAN WARGA RT 004*%0A%0A*Kategori:* ${kategori}%0A*Detail:* ${detail}%0A%0AMohon segera ditindaklanjuti, terima kasih.`;
+            
+            window.location.href = `https://api.whatsapp.com/send?phone=${nomorWAPengurus}&text=${textWA}`;
+            
+            window.showToast('Membuka WhatsApp Pengurus...');
+            e.target.reset();
+            setTimeout(() => window.switchView('view-dashboard', document.querySelectorAll('.nav-item')[0]), 1000);
+        });
+
+        // --- GEMINI AI CHAT (Sistem Pemuda Pintar terintegrasi Vercel & Memory) ---
+        // URL Backend Vercel Anda (Jika API ada di domain yang sama cukup '/api/chat', jika terpisah masukkan full URL)
+        const backendApiUrl = '/api/chat'; 
+        
+        const systemPrompt = `Kamu adalah "Pemuda Pintar", asisten virtual sekaligus teman ngobrol warga RT 004 Perum. Taman Wismaasri 2. 
+Karaktermu: Sangat ramah, asyik, berempati tinggi, hidup seperti manusia, humoris tapi tetap sopan. 
+Tugasmu: Menjawab pertanyaan seputar RT, birokrasi, atau bahkan sekadar menjadi pendengar yang baik jika warga ingin curhat.
+Penting: Kamu memiliki ingatan tentang percakapan sebelumnya. Selalu sapa warga dengan namanya jika sudah tahu. Jangan kaku. Jawab tanpa format markdown tebal/bintang.`;
+
+        window.chatHistory = []; // Memori percakapan
+
+        async function getVercelAIResponse(userText) {
+            window.chatHistory.push({ role: "user", parts: [{ text: userText }] });
+
+            try {
+                // Memanggil server Vercel alih-alih memanggil Gemini secara langsung
+                const response = await fetch(backendApiUrl, { 
+                    method: 'POST', 
+                    headers: { 'Content-Type': 'application/json' }, 
+                    body: JSON.stringify({ 
+                        history: window.chatHistory, 
+                        systemPrompt: systemPrompt 
+                    }) 
+                });
+                
+                if (!response.ok) throw new Error("API Backend belum terhubung");
+                
+                const result = await response.json();
+                let aiText = result.text || "Maaf, Pemuda Pintar sedang blank nih.";
+                
+                // Simpan jawaban AI ke memori
+                window.chatHistory.push({ role: "model", parts: [{ text: aiText }] });
+                
+                return aiText.replace(/\*/g, '').replace(/#/g, '').replace(/\n/g, '<br>');
+            } catch (e) { 
+                window.chatHistory.pop(); // Hapus pesan user dari memori jika gagal terkirim
+                console.error(e);
+                return "Waduh, koneksi ke otak (Server Vercel) terputus nih. Pastikan API Vercel sudah di-deploy ya! 🙏"; 
+            }
+        }
+
+        document.getElementById('chat-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const input = document.getElementById('chat-input');
+            const text = input.value.trim();
+            if (!text) return;
+            input.value = '';
+            
+            const chatMessages = document.getElementById('chat-messages');
+            
+            chatMessages.innerHTML += `<div class="flex justify-end gap-2 pop-in"><div class="bg-blue-600 text-white p-3 rounded-2xl rounded-tr-none text-[13px] max-w-[85%] shadow-md">${text}</div></div>`;
+            
+            const typingId = 'typing-' + Date.now();
+            chatMessages.innerHTML += `<div id="${typingId}" class="flex gap-2"><div class="bg-slate-50 border border-slate-100 p-2.5 rounded-2xl rounded-tl-none text-xs typing-indicator flex items-center h-[34px] shadow-sm"><span></span><span></span><span></span></div></div>`;
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+
+            // Menggunakan API Vercel
+            const response = await getVercelAIResponse(text);
+            
+            document.getElementById(typingId).remove();
+            chatMessages.innerHTML += `<div class="flex gap-2 pop-in"><div class="w-8 h-8 rounded-full bg-blue-50 flex-shrink-0 flex items-center justify-center mt-1 border border-blue-100 shadow-inner"><i class="fa-solid fa-user-tie text-blue-500 text-xs"></i></div><div class="bg-slate-50 border border-slate-100 p-3 rounded-2xl rounded-tl-none text-[13px] text-slate-700 leading-relaxed max-w-[85%] shadow-sm">${response}</div></div>`;
+            chatMessages.scrollTop = chatMessages.scrollHeight; 
+        });
+
+        // ============================================================================
+        // JALANKAN UI SEGERA (Mengatasi Blank Screen)
+        // ============================================================================
+        window.jalankanAplikasi = function() {
+            const loader = document.getElementById('loader-overlay');
+            if (!window.wargaName) {
+                document.getElementById('main-header').style.display = 'none';
+                document.getElementById('bottom-nav').style.display = 'none';
+                document.getElementById('view-dashboard').classList.remove('active');
+                
+                document.getElementById('view-login').style.display = 'flex';
+                document.getElementById('view-login').classList.add('active');
+            } else {
+                document.getElementById('view-login').style.display = 'none';
+                document.getElementById('main-header').style.display = 'flex';
+                document.getElementById('bottom-nav').style.display = 'flex';
+                
+                window.switchView('view-dashboard', document.querySelectorAll('.nav-item')[0]);
+                
+                const chatWelcome = document.getElementById('ai-welcome-msg');
+                if(chatWelcome) chatWelcome.innerHTML = `Assalamu'alaikum Bapak/Ibu <b>${window.wargaName}</b>! 👋<br><br>Ada yang bisa dibantu? Tanya soal syarat administrasi KTP, jadwal agenda, atau lapor info lingkungan, saya siap jawab dengan senang hati.`;
+                
+                const formPdfNama = document.getElementById('pdf-nama');
+                if(formPdfNama) formPdfNama.value = window.wargaName;
+            }
+            
+            loader.style.opacity = '0';
+            setTimeout(() => { loader.style.display = 'none'; }, 400);
+            
+            window.reRenderAppViews();
+        };
+
+        window.jalankanAplikasi();
+
+    </script>
+    
+    <!-- SCRIPT FIREBASE TERPISAH (Agar tidak memblokir UI jika gagal dimuat) -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getAuth, signInWithCustomToken, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, collection, doc, setDoc, onSnapshot, deleteDoc, getDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+        let firebaseConfig = {
+            apiKey: "AIzaSyCxtguhLwuUURyxa23Ud9FyY1X0Tnvpkuk",
+            authDomain: "rt4digital-eabfc.firebaseapp.com",
+            projectId: "rt4digital-eabfc",
+            storageBucket: "rt4digital-eabfc.firebasestorage.app",
+            messagingSenderId: "494388971750",
+            appId: "1:494388971750:web:8913f74958578950555327"
+        };
+
+        if (typeof __firebase_config !== 'undefined' && __firebase_config) {
+            firebaseConfig = JSON.parse(__firebase_config);
+        }
+
+        let app, auth, db;
+        const isConfigValid = firebaseConfig.apiKey && firebaseConfig.apiKey !== "";
+
+        if (isConfigValid) {
+            try {
+                app = initializeApp(firebaseConfig);
+                auth = getAuth(app);
+                db = getFirestore(app);
+            } catch (err) { console.error("Firebase Init Error:", err); }
+        }
+
+        const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-rt004';
+        let currentUser = null;
+
+        const initAuth = async () => {
+            if (!auth) return; 
+            try {
+                if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
+                    await signInWithCustomToken(auth, __initial_auth_token);
+                } else {
+                    await signInAnonymously(auth);
+                }
+            } catch (e) {
+                console.error("Auth Error:", e);
+                if (e.code === 'auth/operation-not-allowed') {
+                    window.showToast("Error: Anda belum mengaktifkan Anonymous Auth di Firebase Console Anda!");
+                }
+            }
+        };
+
+        if (auth) {
+            onAuthStateChanged(auth, (user) => {
+                currentUser = user;
+                if (user) { setupFirestoreListeners(); checkAndSeedData(); }
+            });
+            initAuth();
+        }
+
+        if(!isConfigValid) {
+            setTimeout(() => window.showToast("Aplikasi berjalan dalam Mode Lokal (Offline)."), 1500);
+        }
+
+        // --- OVERWRITE FUNGSI ADMIN DENGAN VERSI FIREBASE ---
+        window.saveAdminData = async function(e) {
+            e.preventDefault();
+            if(!currentUser || !db) { window.showToast("Mode Lokal: Perubahan tidak tersimpan ke Server."); window.closeAdminForm(); window.reRenderAppViews(); return; }
+            
+            const btn = e.target.querySelector('button[type="submit"]');
+            const originText = btn.innerHTML;
+            btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Menyimpan...';
+            btn.disabled = true;
+
+            try {
+                if (window.currentAdminCat === 'settings') {
+                    const pinLama = document.getElementById('input-pin-lama').value;
+                    const pinBaru = document.getElementById('input-pin-baru').value;
+                    if (pinLama !== window.adminPin) throw new Error("PIN Lama salah!");
+                    if (pinBaru.length !== 4) throw new Error("PIN Baru harus 4 angka!");
+                    await setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'settings', 'main'), { adminPin: pinBaru }, { merge: true });
+                    window.adminPin = pinBaru; window.closeAdminForm(); window.showToast('PIN Berhasil Diubah!'); return;
+                }
+
+                if (window.currentAdminCat === 'stats') {
+                    const newStats = {
+                        total: document.getElementById('input-stat-warga').value, rumah: document.getElementById('input-stat-rumah').value, kk: document.getElementById('input-stat-kk').value, laki: document.getElementById('input-stat-laki').value, perempuan: document.getElementById('input-stat-perempuan').value
+                    };
+                    await setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'statistics', 'main'), newStats);
+                    window.closeAdminForm(); window.showToast('Statistik Cloud Diperbarui!'); return;
+                }
+
+                let item = {};
+                if (window.currentAdminCat === 'info') {
+                    item.title = document.getElementById('admin-info-title').value; item.desc = document.getElementById('admin-info-desc').value; item.date = "Baru saja";
+                    const file = document.getElementById('admin-info-file').files[0]; if (file) item.img = await window.fileToBase64(file);
+                } else if (window.currentAdminCat === 'layanan') {
+                    item.title = document.getElementById('admin-layanan-title').value; item.icon = document.getElementById('admin-layanan-icon').value;
+                    item.reqs = document.getElementById('admin-layanan-reqs').value.split('\n').filter(r => r.trim() !== '');
+                } else if (window.currentAdminCat === 'agenda') {
+                    item.title = document.getElementById('admin-agenda-title').value; item.date = document.getElementById('admin-agenda-date').value; item.time = document.getElementById('admin-agenda-time').value; item.loc = document.getElementById('admin-agenda-loc').value;
+                } else if (window.currentAdminCat === 'pengurus') {
+                    item.name = document.getElementById('admin-pengurus-name').value; item.role = document.getElementById('admin-pengurus-role').value; item.phone = document.getElementById('admin-pengurus-phone').value;
+                    const file = document.getElementById('admin-pengurus-file').files[0]; if (file) item.img = await window.fileToBase64(file);
+                } else if (window.currentAdminCat === 'galeri') {
+                    item.title = document.getElementById('admin-galeri-title').value; item.date = document.getElementById('admin-galeri-date').value;
+                    const file = document.getElementById('admin-galeri-file').files[0]; if (file) item.img = await window.fileToBase64(file);
+                    if(!window.currentEditId && !item.img) throw new Error("Foto Wajib Diupload!");
+                }
+
+                const collectionRef = collection(db, 'artifacts', appId, 'public', 'data', window.currentAdminCat);
+                const docRef = window.currentEditId ? doc(collectionRef, window.currentEditId) : doc(collectionRef);
+                if(!window.currentEditId) item.timestamp = Date.now();
+                
+                await setDoc(docRef, item, { merge: true });
+                window.closeAdminForm(); window.showToast('Data Cloud Berhasil Tersimpan!');
+            } catch (err) {
+                console.error(err); window.showToast(err.message || 'Gagal menyimpan ke Cloud.');
+            } finally {
+                btn.innerHTML = originText; btn.disabled = false;
+            }
+        };
+
+        window.eksekusiHapusData = async function() {
+            if (window.pendingDeleteId !== null && currentUser && db) {
+                try {
+                    await deleteDoc(doc(db, 'artifacts', appId, 'public', 'data', window.currentAdminCat, window.pendingDeleteId));
+                    window.showToast('Data di Cloud Terhapus!');
+                } catch(e) { window.showToast('Gagal menghapus data.'); }
+            } else if (window.pendingDeleteId !== null) {
+                window.showToast('Mode Lokal: Simulasi data dihapus.');
+            }
+            window.closeConfirmModal();
+        };
+
+        function setupFirestoreListeners() {
+            if (!currentUser || !db) return;
+
+            onSnapshot(doc(db, 'artifacts', appId, 'public', 'data', 'statistics', 'main'), (snapshot) => {
+                if (snapshot.exists()) { window.statistics = snapshot.data(); window.updateStatsUI(); }
+            }, (err) => { console.error(err); });
+
+            onSnapshot(collection(db, 'artifacts', appId, 'public', 'data', 'info'), (snapshot) => {
+                window.informasiData = snapshot.docs.map(d => ({id: d.id, ...d.data()})).sort((a,b) => b.timestamp - a.timestamp);
+                window.renderInfo();
+                if(window.currentAdminCat === 'info') window.renderAdminList();
+            }, (err) => console.error(err));
+
+            onSnapshot(collection(db, 'artifacts', appId, 'public', 'data', 'agenda'), (snapshot) => {
+                window.agendaData = snapshot.docs.map(d => ({id: d.id, ...d.data()})).sort((a,b) => b.timestamp - a.timestamp);
+                window.renderAgenda();
+                if(window.currentAdminCat === 'agenda') window.renderAdminList();
+            }, (err) => console.error(err));
+
+            onSnapshot(collection(db, 'artifacts', appId, 'public', 'data', 'layanan'), (snapshot) => {
+                if (snapshot.empty && !window.hasSeededLayanan) {
+                    window.hasSeededLayanan = true;
+                    window.initialLayananData.forEach(async (l) => {
+                        try { await setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'layanan', l.id), { ...l, timestamp: Date.now() - Math.floor(Math.random() * 1000) }); } 
+                        catch (e) { console.error("Seeding layanan error", e); }
+                    });
+                } else if (!snapshot.empty) {
+                    window.layananData = snapshot.docs.map(d => ({id: d.id, ...d.data()})).sort((a,b) => b.timestamp - a.timestamp);
+                }
+                window.filterLayanan(document.getElementById('search-layanan')?.value || '');
+                if(window.currentAdminCat === 'layanan') window.renderAdminList();
+            }, (err) => console.error(err));
+
+            onSnapshot(collection(db, 'artifacts', appId, 'public', 'data', 'pengurus'), (snapshot) => {
+                if (snapshot.empty && !window.hasSeededPengurus) {
+                    window.hasSeededPengurus = true;
+                    window.defaultPengurusData.forEach(async (p) => {
+                        try { await setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'pengurus', p.id), p); } 
+                        catch (e) { console.error("Seeding pengurus error", e); }
+                    });
+                } else if (!snapshot.empty) {
+                    window.pengurusData = snapshot.docs.map(d => ({id: d.id, ...d.data()})).sort((a,b) => b.timestamp - a.timestamp);
+                }
+                window.renderPengurus();
+                if(window.currentAdminCat === 'pengurus') window.renderAdminList();
+            }, (err) => console.error(err));
+
+            onSnapshot(collection(db, 'artifacts', appId, 'public', 'data', 'galeri'), (snapshot) => {
+                window.galeriData = snapshot.docs.map(d => ({id: d.id, ...d.data()})).sort((a,b) => b.timestamp - a.timestamp);
+                window.renderGaleri();
+                if(window.currentAdminCat === 'galeri') window.renderAdminList();
+            }, (err) => console.error(err));
+
+            onSnapshot(doc(db, 'artifacts', appId, 'public', 'data', 'settings', 'main'), (snapshot) => {
+                if (snapshot.exists() && snapshot.data().adminPin) {
+                    window.adminPin = snapshot.data().adminPin;
+                }
+            }, (err) => console.error(err));
+        }
+
+        async function checkAndSeedData() {
+            if (!currentUser || !db) return;
+            try {
+                const statDoc = await getDoc(doc(db, 'artifacts', appId, 'public', 'data', 'statistics', 'main'));
+                if (!statDoc.exists()) {
+                    await setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'statistics', 'main'), { total: 452, rumah: 128, kk: 145, laki: 230, perempuan: 222 });
+                    await setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'settings', 'main'), { adminPin: "2504" });
+                    await setDoc(doc(collection(db, 'artifacts', appId, 'public', 'data', 'info')), { title: "Kerja Bakti Minggu Bersih", date: "Hari ini, 08:00 WIB", desc: "Diberitahukan kepada seluruh warga RT 004, besok pagi kita akan melaksanakan kegiatan kerja bakti.", icon: "fa-bullhorn", color: "bg-emerald-500", img: "", timestamp: Date.now() });
+                }
+            } catch(e) { console.error("Gagal Seed Data:", e); }
+        }
+
+    </script>
+</body>
+</html>
